@@ -1,14 +1,16 @@
 # cl-solid
 
+https://github.com/solid/solid/blob/master/README.md#solid
 
+A common lisp library for the solid framework - under development...
 
 ## Usage
 
 ## Installation
 
-## Author
+## Authors
 
-* Frederick C Gibson
+* Frederick C Gibson, Mark Watson
 
 ## Copyright
 
