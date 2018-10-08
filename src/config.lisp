@@ -1,7 +1,6 @@
 (in-package :cl-user)
 (defpackage #:cl-solid/src/config
   (:use :cl)
-  (:nicknames #:config)
   (:import-from :envy
                 :config-env-var
                 :defconfig)
@@ -19,6 +18,20 @@
 (defparameter *application-root*   (asdf:system-source-directory :cl-solid))
 (defparameter *static-directory*   (merge-pathnames #P"static/" *application-root*))
 (defparameter *template-directory* (merge-pathnames #P"templates/" *application-root*))
+
+#| Example config
+
+(defconfig |development|
+    `(:graphdb ((:name . "Allegrograph")
+		(:domain . "http://example.com")
+		(:port . "10035")
+		(:repository . "/repositories/Solid")
+		(:user . "user")
+		(:password . "password")
+		(:namespace . "http://example.com/node#"))
+		       ))
+
+|#
 
 (defconfig :common
   `(:databases ((:maindb :sqlite3 :database-name ":memory:"))))

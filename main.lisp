@@ -1,6 +1,7 @@
 (in-package #:cl-user)
 (defpackage #:cl-solid
   (:use #:cl
+	#:cl-solid/src/util
 	#:cl-solid/src/config
 	#:cl-solid/src/web
 	#:cl-solid/src/view
@@ -14,6 +15,8 @@
                 :clackup)
   (:export :start
            :stop
+	   :sparql-query
+	   :sparql-values
    )
   )
 
