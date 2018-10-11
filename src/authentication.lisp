@@ -1,7 +1,7 @@
 (in-package :cl-user)
 (defpackage #:cl-solid/src/authentication
   (:use :cl
-
+	:jose
 	)
   (:nicknames #:authenticate)
   (:export
@@ -11,3 +11,4 @@
 ;;https://github.com/solid/webid-oidc-spec
 
 ;;https://github.com/BnMcGn/clath
+;;

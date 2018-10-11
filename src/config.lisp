@@ -21,20 +21,34 @@
 
 #| Example config
 
+:namespace  "http://example.com/node#"   ##This namespace should be the domain that your Solid service controls. cl-solid will automatically increment newly created graph node ids up from 1 using theis namespace starting with <http://example.com/node#1> in this example
+
+   
+
 (defconfig |development|
-    `(:graphdb ((:name . "Allegrograph")
-		(:domain . "http://example.com")
-		(:port . "10035")
-		(:repository . "/repositories/Solid")
-		(:user . "user")
-		(:password . "password")
-		(:namespace . "http://example.com/node#"))
-		       ))
+    `(:domain "http://example.com" 
+	      :port "10035" 
+	      :repository "/repositories/Solid" 
+	      :user "user"
+	      :password "password"
+	      :namespace "http://example.com/node#" 
+	      :agent-name "Solid #1"
+	      :graphdb "Allegrograph"
+))
 
 |#
 
 (defconfig :common
-  `(:databases ((:maindb :sqlite3 :database-name ":memory:"))))
+    `(:databases ((:maindb :sqlite3 :database-name ":memory:"))
+		 
+		 :e.agent "<http://xmlns.com/foaf/0.1/Agent>"
+		 :e.progress-code "<http://def.seegrid.csiro.au/isotc211/iso19115/2003/metadata#ProgressCode>"
+		 :p.id "<http://reference.data.gov.au/def/ont/iso19160-1-address#AddressableObject.id>"
+		 :p.label "<http://www.w3.org/2000/01/rdf-schema#label>"
+		 :p.status "<http://def.seegrid.csiro.au/isotc211/iso19115/2003/metadata#status>"
+		 :p.type "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+		 :xsd-int "<http://www.w3.org/2001/XMLSchema#int>"
+		 ))
 
 (defconfig |development|
   '())

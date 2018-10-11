@@ -1,5 +1,6 @@
 (defpackage cl-solid-asd
   (:use :cl :asdf))
+
 (in-package :cl-solid-asd)
 
 (defsystem "cl-solid"
@@ -23,7 +24,7 @@
                ;; for DB
                "datafly"
                "sxql"
-
+	       "clath"
 	       "cl-solid/main"
 	       )
   :description "Common Lisp library for the Solid framework: https://github.com/solid/solid-spec"

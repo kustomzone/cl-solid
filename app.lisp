@@ -1,7 +1,9 @@
 (ql:quickload :cl-solid)
 
 (defpackage cl-solid/app
-  (:use :cl)
+  (:use :cl
+	:cl-solid/src/util
+	)
   (:import-from :lack.builder
                 :builder)
   (:import-from :ppcre
@@ -36,4 +38,5 @@
        (lambda (env)
          (let ((datafly:*trace-sql* t))
            (funcall app env)))))
+ (clath:component (getk :domain (config :server)))
  *web*)

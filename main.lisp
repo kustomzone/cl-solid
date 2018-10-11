@@ -17,6 +17,7 @@
            :stop
 	   :sparql-query
 	   :sparql-values
+	   :getk
    )
   )
 
