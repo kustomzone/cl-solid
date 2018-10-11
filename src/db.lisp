@@ -103,19 +103,19 @@
 (defun ?locked ()
   (let ((locked (sparql-values (string+ "select ?l where { " *agent* " " (config :p.status) " ?l .}"))))
     (if locked
-	(when (string= (caar locked) (config :n.locked))
+	(when (string= (caar locked) *lock*)
 	    t)
 	)))
 
 (defun lock-agent ()
   (if (not (?locked))
-      (let ((result (create-triple *agent* (config :p.status) (config :n.locked))))
+      (let ((result (create-triple *agent* (config :p.status) *lock*)))
 	result
 	)))
 
 (defun unlock-agent ()
   (if (?locked)
-      (let ((result (delete-triple *agent* (config :p.status) (config :n.locked))))
+      (let ((result (delete-triple *agent* (config :p.status) *lock*)))
 	result
 	)))
 

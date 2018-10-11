@@ -6,7 +6,7 @@ A common lisp library for the solid framework - under development...
 
 ## Usage
 
-
+(cl-solid:start :port 80)
 
 
 ## Installation
@@ -25,6 +25,8 @@ The graph db used requires the following ontologies to be loaded:
 *https://lov.linkeddata.es/dataset/lov/vocabs/dcterms
 *https://lov.linkeddata.es/dataset/lov/vocabs/vann
 *https://lov.linkeddata.es/dataset/lov/vocabs/vs
+*https://lov.linkeddata.es/dataset/lov/vocabs/cert
+*http://www.w3.org/ns/pim/space
 
 Configure your graph db settings in cl-solid/src/config
 

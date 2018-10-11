@@ -42,9 +42,16 @@
     `(:databases ((:maindb :sqlite3 :database-name ":memory:"))
 		 
 		 :e.agent "<http://xmlns.com/foaf/0.1/Agent>"
+		 :e.group "<http://xmlns.com/foaf/0.1/Group>"
+		 :e.organization "<http://xmlns.com/foaf/0.1/Organization>"
+		 :e.person "<http://xmlns.com/foaf/0.1/Person>"
+		 :e.personal-profile-document "<http://xmlns.com/foaf/0.1/PersonalProfileDocument>"
 		 :e.progress-code "<http://def.seegrid.csiro.au/isotc211/iso19115/2003/metadata#ProgressCode>"
 		 :p.id "<http://reference.data.gov.au/def/ont/iso19160-1-address#AddressableObject.id>"
+		 :p.key "<http://www.w3.org/ns/auth/cert#key>"
 		 :p.label "<http://www.w3.org/2000/01/rdf-schema#label>"
+		 :p.name "<http://xmlns.com/foaf/0.1/name>"
+		 :p.primary-topic "<http://xmlns.com/foaf/0.1/primaryTopic>"
 		 :p.status "<http://def.seegrid.csiro.au/isotc211/iso19115/2003/metadata#status>"
 		 :p.type "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
 		 :xsd-int "<http://www.w3.org/2001/XMLSchema#int>"
