@@ -1,6 +1,6 @@
 # cl-solid
 
-https://github.com/solid/solid/blob/master/README.md#solid
+![Solid Logo](https://avatars3.githubusercontent.com/u/14262490?v=3&s=200)(https://github.com/solid/solid)
 
 A common lisp library for the solid framework - under development...
 
