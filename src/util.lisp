@@ -98,3 +98,6 @@ if there were an empty string between them."
       item
       (if (?uri item)
 	  (string+ "<" item ">"))))
+
+(defmethod get-iri ((item t))
+  nil)

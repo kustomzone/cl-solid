@@ -13,6 +13,7 @@
 	   :sparql-values
 	   :create-triple
 	   :delete-triple
+	   :create-new-id
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -94,10 +95,10 @@
 	(if (?locked)
 	    (write-new-id int current-id iteration)
 	    (when (integerp int)
-	      (lock-current-id)
+	      (lock-agent)
 	      (create-triple *agent* (config :p.id) (write-to-string int) :typed (config :xsd-int))
 	      (delete-triple *agent* (config :p.id) (write-to-string current-id) :typed (config :xsd-int))
-	      (unlock-current-id)
+	      (unlock-agent)
 	      )))))
 
 (defun ?locked ()

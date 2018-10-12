@@ -7,6 +7,7 @@
 	#:cl-solid/src/view
 	#:cl-solid/src/db
 	#:cl-solid/src/authentication
+	#:cl-solid/src/make
 
 	)
   (:import-from :cl-solid/src/config
