@@ -21,8 +21,9 @@
 		  (if (get-iri agent)
 		      (get-iri agent)
 		      (when name
-			(make-agent name :image image :nickname nickname :key key :container :container :graph webid))))))
+			(make-agent name :image image :nickname nickname :key key :container container :graph webid))))))
     (when (and agent webid)
+      (create-triple webid (config :p.label) (get-uri webid) :graph webid :typed (config :xsd-string))
       (create-triple webid (config :p.type) (config :e.personal-profile-document) :graph webid)
       (create-triple webid (config :p.primary-topic) agent :graph webid))))
 
@@ -34,16 +35,25 @@
 	(let ((agent-id (create-new-id))
 	      (cont (if (get-iri container)
 			(get-iri container)
-			(let ((cont (create-new-id)))
-			  (when cont
-			    (create-triple cont (config :p.type) (config :e.basic-container) :graph graph)
-			    (create-triple cont (config :p.label) (config :agent-name) :graph graph)
-			    )))))
+			(make-container :graph graph)
+			)))
 	  (create-triple agent-id (config :p.type) type :graph graph)
 	  (create-triple agent-id (config :p.storage) cont :graph graph)
 	  (create-triple agent-id (config :p.name) name :graph graph)
+	  (create-triple agent-id (config :p.label) name :graph graph)
 	  (when (get-iri image) (create-triple agent-id (config :p.image) (get-iri image) :graph graph))
 	  (when (stringp nickname) (create-triple agent-id (config :p.nickname) nickname :graph graph))
 	  (when (get-iri key) (create-triple agent-id (config :p.key) (get-iri key) :graph graph))
+	  agent-id
 	  )))))
+
+;;Containers: https://www.w3.org/TR/2015/REC-ldp-20150226/
+
+(defun make-container (&key (type (config :e.basic-container)) (label (config :agent-name)) graph)
+  (let ((container (create-new-id)))
+    (when container
+      (create-triple container (config :p.type) type :graph graph)
+      (create-triple container (config :p.label) label :graph graph)
+      container
+      )))
 		    

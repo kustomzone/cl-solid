@@ -18,6 +18,7 @@
 	   :?uri
 	   :?iri
 	   :get-iri
+	   :get-uri
 	   )
   )
 
@@ -99,5 +100,20 @@ if there were an empty string between them."
       (if (?uri item)
 	  (string+ "<" item ">"))))
 
+(defmethod get-iri ((item quri.uri:uri))
+  (get-iri (quri:render-uri item)))
+
 (defmethod get-iri ((item t))
+  nil)
+
+(defmethod get-uri ((item quri.uri:uri))
+  (quri:render-uri item))
+
+(defmethod get-uri ((item string))
+  (cond ((?uri item)
+	 item)
+	((?iri item)
+	 (string-trim '(#\< #\>) item))))
+
+(defmethod get-uri ((item t))
   nil)
