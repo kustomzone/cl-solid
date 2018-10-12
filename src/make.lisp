@@ -25,7 +25,9 @@
     (when (and agent webid)
       (create-triple webid (config :p.label) (get-uri webid) :graph webid :typed (config :xsd-string))
       (create-triple webid (config :p.type) (config :e.personal-profile-document) :graph webid)
-      (create-triple webid (config :p.primary-topic) agent :graph webid))))
+      (create-triple webid (config :p.primary-topic) agent :graph webid)
+      webid
+      )))
 
 (defmethod make-agent ((name string) &key (type (config :e.person)) image nickname key container graph)
   "minimum agent: p.name. Note: this function should typically not be run directly to get the web-id iri as graph value on first creation"

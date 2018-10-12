@@ -6,7 +6,16 @@ A common lisp library for the solid framework - under development...
 
 ## Usage
 
-(cl-solid:start :port 80)
+(in-package :cl-solid)
+
+(start :port 8080)  - Starts Solid web service (uses same options as caveman2)
+>Hunchentoot server is started.
+Listening on localhost:8080.
+
+(make-webid :name "Frederick Gibson")  - creates a new webid with new agent and container
+> "<http://solid.example.com/node#2>"
+
+[![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
 
 
 ## Installation

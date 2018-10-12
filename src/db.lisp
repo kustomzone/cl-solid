@@ -14,6 +14,7 @@
 	   :create-triple
 	   :delete-triple
 	   :create-new-id
+	   :get-typed-literal
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -96,8 +97,8 @@
 	    (write-new-id int current-id iteration)
 	    (when (integerp int)
 	      (lock-agent)
-	      (create-triple *agent* (config :p.id) (write-to-string int) :typed (config :xsd-int))
-	      (delete-triple *agent* (config :p.id) (write-to-string current-id) :typed (config :xsd-int))
+	      (create-triple *agent* (config :p.id) (write-to-string int) :typed :int)
+	      (delete-triple *agent* (config :p.id) (write-to-string current-id) :typed :int)
 	      (unlock-agent)
 	      )))))
 
@@ -129,8 +130,8 @@
 (defun modify-triple (subject predicate object &key (graph *agent*) typed action) 
   (let ((subject (get-iri subject))
 	(predicate (get-iri predicate))
-	(object (if (?iri typed)
-		    (string+  "\"" object "\"^^" typed)
+	(object (if typed
+		    (get-typed-literal object typed)
 		    (if (?iri object)
 			object
 			(if (?uri object)
@@ -144,14 +145,20 @@
     (let ((result (sparql-query (string+ action " DATA { GRAPH " graph " { " subject " " predicate " " object " .} }"))))
       (when result (json-string->list result))))))
 
+(defmethod get-typed-literal ((item string)(type string))
+  (when (and (stringp item) (member type (get-pl-values (config :xsd)) :test #'string=))
+    (string+  "\"" item "\"^^" type)
+    ))
 
+(defmethod get-typed-literal ((item string)(type symbol))
+  (get-typed-literal item (getf (config :xsd) type ))) 
 
 (defun get-object (item)
   (let ((parse (split-string #\^ item)))
     (if (= (length parse) 3)
 	(let ((object (first parse))
 	      (type (third parse)))
-	  (cond ((string= type (config :xsd-int))
+	  (cond ((string= type (getf (config :xsd) :int))
 		 (parse-integer (second (split-string #\" object))))
 		))
 	item

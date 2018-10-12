@@ -19,6 +19,7 @@
 	   :?iri
 	   :get-iri
 	   :get-uri
+	   :get-pl-values
 	   )
   )
 
@@ -116,4 +117,15 @@ if there were an empty string between them."
 	 (string-trim '(#\< #\>) item))))
 
 (defmethod get-uri ((item t))
+  nil)
+
+(defmethod get-pl-values ((property-list cons))
+  "Returns just the values of the property list as a list, skipping the keys"
+  (let ((result))
+    (dotimes (pv (/ (length property-list) 2))
+      (setf result (cons (nth (+ (* pv 2) 1) property-list) result)))
+    result
+    ))
+
+(defmethod get-pl-values ((property-list t))
   nil)

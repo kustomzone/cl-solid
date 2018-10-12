@@ -60,8 +60,10 @@
 		 :p.status "<http://def.seegrid.csiro.au/isotc211/iso19115/2003/metadata#status>"
 		 :p.storage "<http://www.w3.org/ns/pim/space#storage>"
 		 :p.type "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
-		 :xsd-int "<http://www.w3.org/2001/XMLSchema#int>"
-		 :xsd-string "<http://www.w3.org/2001/XMLSchema#string>"
+		 :xsd (:int "<http://www.w3.org/2001/XMLSchema#int>"
+			    :string "<http://www.w3.org/2001/XMLSchema#string>"
+			    )
+
 		 
 		 ))
 
