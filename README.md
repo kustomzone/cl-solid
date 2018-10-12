@@ -2,7 +2,7 @@
 
 [![Solid Logo](https://avatars3.githubusercontent.com/u/14262490?v=3&s=200)](https://github.com/solid/solid)
 
-A common lisp library for the solid framework - under development...
+A common lisp library for the Solid framework - under development...
 
 ## Usage
 
@@ -10,7 +10,7 @@ A common lisp library for the solid framework - under development...
 (in-package :cl-solid)
 ```
 
-Starts Solid web service (uses same options as caveman2)
+Start Solid web service (uses same options as caveman2):
 
 ```common-lisp
 (start :port 8080)
@@ -18,13 +18,14 @@ Starts Solid web service (uses same options as caveman2)
 ;->Listening on localhost:8080.
 ```
 
-Create a new webid with new agent and container
+Create a new webid with new agent and container:
 ```common-lisp
 (make-webid :name "Frederick Gibson")
 ;->"<http://solid.example.com/node#2>"
 ```
 
 [![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
+
 Graph visualization from make-webid command above
 
 ## Installation
@@ -49,16 +50,19 @@ The graph db used requires the following ontologies to be loaded:
 
 Configure your graph db settings in cl-solid/src/config
 
->(load "path/cl-solid/sl-solid.asd")
->(ql:quickload :cl-solid)
+```common-lisp
+(load "path/cl-solid/sl-solid.asd")
+(ql:quickload :cl-solid)
+```
 
 When first initiating cl-solid with a new Repository, use (initiate-solid) to create the needed triples for your Solid agent and lock.
 
 To switch between configurations:
 
->(ql:quickload :osicat)
->(setf (osicat:environment-variable "APP_ENV") "development")
-
+```common-lisp
+(ql:quickload :osicat)
+(setf (osicat:environment-variable "APP_ENV") "development")
+```
 
 ## Authors
 
