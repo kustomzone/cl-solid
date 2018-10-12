@@ -6,24 +6,31 @@ A common lisp library for the solid framework - under development...
 
 ## Usage
 
->(in-package :cl-solid)_
-_
-Starts Solid web service (uses same options as caveman2)_
-_
->(start :port 8080)_
->Hunchentoot server is started._
->Listening on localhost:8080._
-_
-Create a new webid with new agent and container_
->(make-webid :name "Frederick Gibson")_
->"<http://solid.example.com/node#2>"_
-_
+```common-lisp
+(in-package :cl-solid)
+```
+
+Starts Solid web service (uses same options as caveman2)
+
+```common-lisp
+(start :port 8080)
+;->Hunchentoot server is started.
+;->Listening on localhost:8080.
+```
+
+Create a new webid with new agent and container
+```common-lisp
+(make-webid :name "Frederick Gibson")
+;->"<http://solid.example.com/node#2>"
+```
+
 [![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
->graph visualization from make-webid command above
+Graph visualization from make-webid command above
 
 ## Installation
 
-This library is being used and tested with Allegrograph graph db.  A free version is available here: https://franz.com/agraph/downloads/
+This library is being used and tested with Allegrograph graph db.
+A free version is available here: https://franz.com/agraph/downloads/
 
 Using the VM Allegrograph version is highly recommended with Virtualbox as you can then install sbcl/emacs/slime on the Ubuntu VM and devlop directly in that environment.
 
