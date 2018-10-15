@@ -15,6 +15,11 @@
 	   :delete-triple
 	   :create-new-id
 	   :get-typed-literal
+	   :get-object
+	   :*agent*
+	   :initiate-solid
+	   :server-script
+	   :?allegrograph
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -53,9 +58,9 @@
     (when (not (sparql-values (string+ "select ?o where { " *agent* " " (config :p.type) "?o .}")))	
 	(create-triple *agent* (config :p.type) (config :e.agent))
 	(create-triple *agent* (config :p.label) (config :agent-name))
-	(create-triple *agent* (config :p.id) "2" :typed "<http://www.w3.org/2001/XMLSchema#int>" )
-	(create-triple lock (config :p.type) (config :e.progress-code) )
-	(create-triple lock (config :p.label) "Locked")))
+	(create-triple *agent* (config :p.id) "2" :typed :int )
+	(create-triple *lock* (config :p.type) (config :e.progress-code) )
+	(create-triple *lock* (config :p.label) "Locked")))
 
 (defun get-current-id ()
   (let ((values (sparql-values (string+ "select ?o where {" *agent* (config :p.id) " ?o}"))))
@@ -161,20 +166,66 @@
 	  (cond ((string= type (getf (config :xsd) :int))
 		 (parse-integer (second (split-string #\" object))))
 		))
-	item
+	(string-trim '(#\") item)
 	)))
 
-(defun sparql-query (query)
-  "this will take any query as a string and send to server"
+(defmacro ag-request (url &key accept content (verb :get) (charset "utf-8") content-type)
+  "This is the basic building block for http requests to the Allegrograph db"
+  (when (member verb '(:get :post :delete :put :patch))
+    (handler-case
+	(multiple-value-bind (body status response-headers uri stream)
+	    `(,(intern (symbol-name verb) "DEX") ,url
+	       :basic-auth (quote (,(config :user) . ,(config :password)))
+	       :headers (list (quote ("accept" . ,accept))
+			      (quote ("content-type" . ,content-type))
+			      (quote ("charset" . ,charset))
+			      )
+	       :content ,content)
+	  (values body status response-headers uri stream))
+      (error (err) (process-error err)))))
+
+(defun get-server()
+  (string+ (config :domain) ":" (config :port)))
+
+(defun get-repository ()
+  (string+ (get-server) (config :repository)))
+
+(defun get-auth ()
+  `(,(config :user) . ,(config :password)))
+
+(defun ?allegrograph ()
+  (when (string= (config :graphdb) "Allegrograph")
+    t
+    ))
+
+(defun sparql2 (query &key (accept :json))
   (let* ((repository (string+ (config :domain) ":" (config :port) (config :repository)))
+	 (accept (cond ((keywordp accept)
+			(getf (config :sparql-output) accept))
+		       ((stringp accept)
+			accept))))
+    (ag-request repository
+		:verb :post
+		:content-type "application/sparql-query"
+		:accept accept
+		:content query)))
+  
+
+(defun sparql-query (query &key (output :json))
+  "this will take any query as a string and send to server"
+  (let* ((repository (get-repository))
+	 (output (cond ((keywordp output)
+			(getf (config :sparql-output) output))
+		       ((stringp output)
+			output)))
 	 )
   (handler-case
       (multiple-value-bind (result http-status response-hash uri stream)
 	  (dex:post repository
-		    :basic-auth `(,(config :user) . ,(config :password))
+		    :basic-auth (get-auth)
 		    :headers (list '("content-type"."application/sparql-query")
 				   '("charset"."utf-8")
-				   '("accept"."application/json")
+				   `("accept". ,output)
 				   )
 		    :content query
 		    )
@@ -185,7 +236,60 @@
     (error (err) (process-error err)))))
 
 (defun sparql-values (query)
-  (let ((result (sparql-query query)))
+  (let ((result (sparql-query query :output :json)))
     (if (stringp result)
 	(cdr (assoc :values
 		       (json-string->list result))))))
+
+;;Need to serialize turtle - use of Allegrograph sessions and server scripting here
+
+;;first write script to the server from library file
+
+(defun db-session (script store command arguments &key (content-type (config :urlencoded)))
+  "Triples in the form of a string"
+  (when (?allegrograph)
+    (handler-case
+	(let ((url
+	       (dex:post (string+ (get-repository) "/session")
+			 :basic-auth (get-auth)
+			 :headers (list `("script" . ,script)
+					`("store" . ,store)
+					'("charset" . "utf-8")
+					`("content-type" . ,content-type))
+			 )))
+	  (format t "~%URL: ~A" url)
+	  (when (< (length (string-left-trim (config :domain) url)) (length url))
+	    (dex:post (string+ url "/custom/" command)
+		      :basic-auth (get-auth)
+		      :headers (list '("charset" . "utf-8")
+				     `("content-type" . ,content-type))
+		      :content arguments
+		      )))
+      (error (err) (process-error err)))))
+
+(defun server-script (script arguments)
+  (when (?allegrograph)
+    (handler-case
+	(dex:post (string+ (get-repository) "/custom/" script)  :basic-auth (get-auth) :content arguments)
+      (error (err) (process-error err)))))
+
+(defun update-server-scripts ()
+  (when (?allegrograph)
+    (let* ((file "serialize.lisp")
+	   (rows
+	    (with-open-file (stream (asdf:system-relative-pathname 'cl-solid (string+ "src/server-scripts/" file)))
+	      (loop for line = (read-line stream nil)
+		 while line
+		 collect line)))
+	   (content ""))
+      (dolist (row rows)
+	(setf content (string+ content (format nil "~a~%" row))))
+      (print content)
+      (progn
+	(dex:put (string+ (get-repository) "/scripts/" file) :basic-auth (get-auth) :content content)
+	(dex:put (string+ (get-server) "/initfile") :basic-auth (get-auth) :content content))	
+      )))
+
+
+  
+								      

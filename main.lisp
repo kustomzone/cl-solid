@@ -8,7 +8,7 @@
 	#:cl-solid/src/db
 	#:cl-solid/src/authentication
 	#:cl-solid/src/make
-
+	#:cl-solid/src/serialize
 	)
   (:import-from :cl-solid/src/config
                 :config)

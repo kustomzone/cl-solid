@@ -62,10 +62,57 @@
 		 :p.type "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
 		 :xsd (:int "<http://www.w3.org/2001/XMLSchema#int>"
 			    :string "<http://www.w3.org/2001/XMLSchema#string>"
+			    :boolean "<http://www.w3.org/2001/XMLSchema#boolean>"
+			    :byte "<http://www.w3.org/2001/XMLSchema#byte>"
+			    :date "<http://www.w3.org/2001/XMLSchema#date>"
+			    :date-time "<http://www.w3.org/2001/XMLSchema#dateTime>"
+			    :decimal "<http://www.w3.org/2001/XMLSchema#decimal>"
+			    :double "<http://www.w3.org/2001/XMLSchema#double>"
+			    :float "<http://www.w3.org/2001/XMLSchema#float>"
+			    :integer "<http://www.w3.org/2001/XMLSchema#integer>"
+			    :long "<http://www.w3.org/2001/XMLSchema#long>"
+			    :short "<http://www.w3.org/2001/XMLSchema#short>"
+			    :time "<http://www.w3.org/2001/XMLSchema#time>"
+			    :unsigned-byte "<http://www.w3.org/2001/XMLSchema#unsignedByte>"
+			    :unsigned-int "<http://www.w3.org/2001/XMLSchema#unsignedInt>"
+			    :unsigned-long "<http://www.w3.org/2001/XMLSchema#unsignedLong>"
+			    :unsigned-short "<http://www.w3.org/2001/XMLSchema#unsignedShort>"
 			    )
-
+		 :sparql-output (:sparql+xml "application/sparql-results+xml"
+					     :processed-csv "application/processed-csv"
+					     :sparql+json "application/sparql-results+json"
+					     :sparql+json-rows "application/sparql-results+json-rows"
+					     :sparql+ttl "application/sparql-results+ttl"
+					     :sparql+xml "application/sparql-results+xml"
+					     :sparql+xml-rows "application/sparql-results+xml-rows"
+					     :x-ag-binary-rdf "application/x-ag-binary-rdf"
+					     :x-direct-upis "application/x-direct-upis"
+					     :lisp "application/x-lisp-structured-expression"
+					     :csv "text/csv"
+					     :csv-rows "text/csv-rows"
+					     :integer "text/integer"
+					     :simple-csv "text/simple-csv"
+					     :tab "text/tab-separated-values"
+					     :tab-rows "text/tab-separated-values-rows"
+					     :table "text/table"
+					     :json "application/json"
+					     :text "text/plain"
+					     )
+		 :output (:rdf/xml "application/rdf+xml"
+				   
+				   :n-triples "text/plain"
+				   :n-quads "application/rdf+xml"
+				   :trix "application/trix"
+				   :n3 "application/trix"
+				   :integer "application/trix"
+				   :json "application/json"
+				   :x-quints "application/x-quints+json")
+		 :urlencoded "application/x-www-form-urlencoded"
+				       
+		 :export-tool "/home/graphMetrix/ag6.4.1/bin/agtool"
 		 
 		 ))
+
 
 (defconfig |development|
   '())

@@ -21,7 +21,7 @@ Start Solid web service (uses same options as caveman2):
 Create a new webid with new agent and container:
 ```common-lisp
 (make-webid :name "Frederick Gibson")
-;->"<http://solid.example.com/node#2>"
+;->"<http://solid.example.com/node#3>"
 ```
 
 [![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
@@ -47,15 +47,37 @@ The graph db used requires the following ontologies to be loaded:
 * https://lov.linkeddata.es/dataset/lov/vocabs/vs
 * https://lov.linkeddata.es/dataset/lov/vocabs/cert
 * http://www.w3.org/ns/pim/space
+* http://www.w3.org/ns/solid/terms
 
-Configure your graph db settings in cl-solid/src/config
+Configure your graph db settings in cl-solid/src/config - an example development configuration:
 
 ```common-lisp
-(load "path/cl-solid/sl-solid.asd")
+(defconfig |development|
+    `(:domain "http://localhost"
+	      :user "user"
+	      :password "password"
+	      :port "10035"
+	      :repository "/repositories/Solid"
+	      :namespace "http://localhost/node#"
+	      :agent-name "Localhost"
+	      :graphdb "Allegrograph"
+	      ))
+```
+Until the library is released and added to quicklisp, to load:
+
+```common-lisp
+(load "<path>/cl-solid/sl-solid.asd")
 (ql:quickload :cl-solid)
 ```
 
-When first initiating cl-solid with a new Repository, use (initiate-solid) to create the needed triples for your Solid agent and lock.
+When first initiating cl-solid with a new Repository, to create the needed triples for your Solid agent and lock:
+```common-lisp
+(cl-solid:initiate-solid)
+```
+For Allegrograph users, write scripts to the graph db server on first use:
+```common-lisp
+(update-server-scripts)
+```
 
 To switch between configurations:
 

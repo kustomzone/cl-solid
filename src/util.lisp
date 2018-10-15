@@ -6,6 +6,8 @@
 	:babel
 	:quri
 	)
+  (:import-from :cl-json-ld
+		)
   (:export :plist->json
 	   :json->plist
 	   :json->lisp
@@ -20,6 +22,8 @@
 	   :get-iri
 	   :get-uri
 	   :get-pl-values
+	   :triples->nquads
+	   :triples->json-ld
 	   )
   )
 
@@ -129,3 +133,22 @@ if there were an empty string between them."
 
 (defmethod get-pl-values ((property-list t))
   nil)
+
+(defmethod triples->nquads ((triples cons))
+  (let ((result "")
+	(row ""))
+    (dolist (triple triples)
+      (dolist (trip triple)
+	(setf row (string+ row trip " ")))
+      (setf result (string+ result (format nil "~a .~%" row)))
+      (setf row ""))
+    result
+    ))
+
+(defmethod triples->nquads ((triples t))
+  nil)
+
+(defun triples->json-ld (triples)
+  "triples generated from sparql-values - need to be in nquad format - output is string-output-stream (get-output-stream-string)"
+  (when triples
+    (cl-json-ld:jsd-to-string (car (from-rdf (triples->nquads triples))))))
