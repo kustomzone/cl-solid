@@ -12,52 +12,111 @@
 
 (in-package :cl-solid/src/make)
 
+
+
 ;;NOTE: This implementation is using the web-id as a named graph for all triples related to that web-id for easy full graph retrieval
 ;;user can select an id that is checked for uniqueness so that the resulting webid and their agent is http://userid.domain/profile/card#me
 
 
-(defun make-webid (&key agent name image nickname key container)
+(defun make-webid (userid &key name image nickname key email)
   "minimum required webid: webid is instance of e.personal-profile-document, has p.primary-topic with a valid Agent type"
-  (let* ((webid (create-new-id))
-	 (agent (when webid
-		  (if (get-iri agent)
-		      (get-iri agent)
-		      (when name
-			(make-agent name :image image :nickname nickname :key key :container container :graph webid))))))
-    (when (and agent webid)
-      (create-triple webid (config :p.label) (get-uri webid) :graph webid :typed (config :xsd-string))
-      (create-triple webid (config :p.type) (config :e.personal-profile-document) :graph webid)
-      (create-triple webid (config :p.primary-topic) agent :graph webid)
-      webid
-      )))
+  ;;check that webid is unique
+  (when (stringp userid)
+    (let* ((parse-namespace (split-string #\/ (config :namespace)))
+	   (base-web-id (string+ (first parse-namespace) "//" userid "." (third parse-namespace)))
+	   (profile (string+ base-web-id "/profile/card"))
+	   (webid (get-iri (string+ profile "#me")))
+	   (profile (get-iri profile))
+	   )
+      (if (sparql-values (string+ "select ?o where {" webid " ?p ?o .}"))
+	  (format t "~%ERROR: This webid already exists - try again with another userid")
+	  (when (and webid profile)
+	    (format t "~%Creating Profile...")
+	    (make-type profile "foaf:PersonalProfileDocument" webid)
+	    (create-triple profile "foaf:maker" webid :graph webid)
+	    (create-triple profile "foaf:primaryTopic" webid :graph webid)
 
-(defmethod make-agent ((name string) &key (type (config :e.person)) image nickname key container graph)
-  "minimum agent: p.name. Note: this function should typically not be run directly to get the web-id iri as graph value on first creation"
-  (when (and name (config :agent-name) graph)
-    (let ((type (get-iri type)))
-      (when (member type (list (config :e.person) (config :e.group) (config :e.organization)) :test #'string=)
-	(let ((agent-id (create-new-id))
-	      (cont (if (get-iri container)
-			(get-iri container)
-			(make-container :graph graph)
-			)))
-	  (create-triple agent-id (config :p.type) type :graph graph)
-	  (create-triple agent-id (config :p.storage) cont :graph graph)
-	  (create-triple agent-id (config :p.name) name :graph graph)
-	  (create-triple agent-id (config :p.label) name :graph graph)
-	  (when (get-iri image) (create-triple agent-id (config :p.image) (get-iri image) :graph graph))
-	  (when (stringp nickname) (create-triple agent-id (config :p.nickname) nickname :graph graph))
-	  (when (get-iri key) (create-triple agent-id (config :p.key) (get-iri key) :graph graph))
-	  agent-id
-	  )))))
+	    (format t "~%Creating WebID...")
+	    (make-type webid (list "schema:Person" "foaf:Person") webid)
+	    (when (stringp name)(create-triple webid "vcard:fn" name :graph webid :typed (getf (config :xsd) :string))
+		  (create-triple webid "foaf:name" name :graph webid :typed (getf (config :xsd) :string)))
+	    
+	    (format t "~%Creating WebID Account...")
+	    (let ((inbox (get-iri (string+ base-web-id "//inbox/")))
+		  (prefs (get-iri (string+ base-web-id "/settings/prefs.ttl")))
+		  (account (get-iri (string+ base-web-id "/")))
+		  (well-known (get-iri (string+ base-web-id "//.well-known/")))
+		  (pro (get-iri (string+ base-web-id "//profile/")))
+		  (pub (get-iri (string+ base-web-id "//public/")))
+		  (set (get-iri (string+ base-web-id "//settings/")))
+		  (favicon (get-iri (string+ base-web-id "//favicon.ico")))
+		  (index (get-iri (string+ base-web-id "//index.html")))
+		  (robots (get-iri (string+ base-web-id "//robots.txt")))
+		  )
+	      
+	      (create-triple webid "ldp:inbox" inbox :graph webid)
+	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container") webid)
+
+	      (create-triple webid "space:preferencesFile" prefs :graph webid)
+	      (make-type prefs "space:ConfigurationFile" webid)
+	      (create-triple prefs "dcterms:title" "Preferences file" :graph webid :typed (getf (config :xsd) :string))
+
+	      (make-type account (list "ldp:BasicContainer" "ldp:Container") webid)
+	      (make-contain account
+			    (list well-known
+				  favicon
+				  inbox
+				  index
+				  pro
+				  pub
+				  (get-iri (string+ base-web-id "//robots.txt"))
+				  set)
+			    webid)
+	      
+	      (make-type well-known (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+
+	      (make-type favicon (list "ldp:Resource" "<http://www.w3.org/ns/iana/media-types/image/vnd.microsoft.icon#Resource>") webid)
+
+	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+
+	      (make-type index (list "<http://www.w3.org/ns/iana/media-types/text/html#Resource>" "ldp:Resource") webid)
+
+	      (make-type pro (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+
+	      (make-type pub (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+
+	      (make-type robots (list "<http://www.w3.org/ns/iana/media-types/text/plain#Resource>" "ldp:Resource") webid)
+
+	      (make-type set (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+
+	      (create-triple webid "solid:account" account :graph webid)	    
+	      (create-triple webid "space:storage" account :graph webid)
+	      (create-triple webid "solid:privateTypeIndex" (get-iri (string+ base-web-id "/settings/privateTypeIndex.ttl")) :graph webid)
+	      (create-triple webid "solid:publicTypeIndex" (get-iri (string+ base-web-id "/settings/publicTypeIndex.ttl")) :graph webid)
+
+	      (when (get-iri image) (create-triple webid "foaf:img" (get-iri image) :graph webid))
+	      (when (stringp nickname) (create-triple webid "foaf:nick" nickname :graph webid :typed (getf (config :xsd) :string)))
+	      (when (get-iri key) (create-triple webid "cert:key" (get-iri key) :graph webid))
+	      (when (stringp email) (create-triple webid "foaf:mbox" (string+ "<mailto:" email ">") :graph webid))
+	      
+	      webid
+	      ))))))
 
 ;;Containers: https://www.w3.org/TR/2015/REC-ldp-20150226/
 
-(defun make-container (&key (type (config :e.basic-container)) (label (config :agent-name)) graph)
-  (let ((container (create-new-id)))
-    (when container
-      (create-triple container (config :p.type) type :graph graph)
-      (create-triple container (config :p.label) label :graph graph)
-      container
-      )))
-		    
+    
+(defmethod make-contain ((container string) (item string) (graph string))
+  (create-triple container "ldp:contains" item :graph graph))
+
+(defmethod make-contain ((container string) (item cons) (graph string))
+  (dolist (i item)
+    (make-contain container i graph)))
+
+(defmethod make-type ((subject string)(type string)(graph string))
+  (create-triple subject "rdf:type" type :graph graph))
+
+(defmethod make-type ((subject string)(type cons)(graph string))
+  (dolist (i type)
+    (make-type subject i graph)))
+
+

@@ -15,6 +15,7 @@
 	   :delete-triple
 	   :create-new-id
 	   :get-typed-literal
+	   :grow
 	   :get-object
 	   :*agent*
 	   :initiate-solid
@@ -22,6 +23,7 @@
 	   :?allegrograph
 	   :update-server-scripts
 	   :get-repo-name
+	   :get-ontologies
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -63,6 +65,9 @@
 (defun get-repo-name ()
   (car (last (split-string #\/ (config :repository)))))
 
+(defun get-ontologies ()
+  (get-pl-keys (config :ontology)))
+
 (defun get-auth ()
   `(,(config :user) . ,(config :password)))
 
@@ -98,11 +103,12 @@
       )))
 
 (defun upload-ontologies ()
-  (dolist (ontology (get-pl-keys (config :ontology)))
-    (format t "~%Loading ~A..." ontology)
-    (server-script "upload-ontology" (list `("repo" . ,(get-repo-name))
-					   `("location" . ,(getf (config :ontology-ttl) ontology))
-					   `("graph" . ,(getf (config :ontology-uri) ontology))))))
+  (when (?allegrograph)
+    (dolist (ontology (get-ontologies))
+      (format t "~%Loading ~A..." ontology)
+      (server-script "upload-ontology" (list `("repo" . ,(get-repo-name))
+					     `("location" . ,(getf (config :ontology-ttl) ontology))
+					     `("graph" . ,(getf (config :ontology-uri) ontology)))))))
 
 (defun initiate-solid ()
   "Initiates new repository on graph db - WARNING - this will delete current repostitory if it exists"
@@ -135,7 +141,6 @@
     IRI))
 
 (defun create-new-ids (&optional qty)
-  ;;TODO write in lock function to prevent overlapping id requests
   (let* ((current-id (get-current-id))
 	 (id-list nil)
 	 (qty (if qty qty 1))
@@ -195,41 +200,63 @@
   (modify-triple subject predicate object :graph graph :typed typed :action "DELETE"))
 
 (defun modify-triple (subject predicate object &key (graph *agent*) typed action) 
-  (let ((subject (get-iri subject))
-	(predicate (get-iri predicate))
+  (let ((subject (grow subject))
+	(predicate (grow predicate))
 	(object (if typed
 		    (get-typed-literal object typed)
-		    (if (?iri object)
-			object
-			(if (?uri object)
-			    (get-iri object)
-			    (if (stringp object)
-				(string+ "\"" object "\""))))))
-	(graph (if (?iri graph)
-		   graph
-		   (get-iri graph))))
-  (when (and subject predicate object graph)
-    (let ((result (sparql-query (string+ action " DATA { GRAPH " graph " { " subject " " predicate " " object " .} }"))))
-      (when result (json-string->list result))))))
+		    (cond ((?iri object)
+			   object)
+			  ((?compact object)
+			   (grow object))
+			  ((stringp object)
+			   (string+ "\"" object "\"")))))
+	(graph (grow graph)))
+    (when (and subject predicate object graph)
+      (let ((result (sparql-query (string+ action " DATA { GRAPH " graph " { " subject " " predicate " " object " .} }"))))
+	(when result (json-string->list result))))))
 
 (defmethod get-typed-literal ((item string)(type string))
   (when (and (stringp item) (member type (get-pl-values (config :xsd)) :test #'string=))
-    (string+  "\"" item "\"^^" type)
+    (string+  "\"" item "\"^^" (grow type))
     ))
 
 (defmethod get-typed-literal ((item string)(type symbol))
-  (get-typed-literal item (getf (config :xsd) type ))) 
+  (get-typed-literal item (getf (config :xsd) type )))
+
+(defmethod ?compact ((item string))
+  (let ((parse (split-string #\: item)))
+    (when (= (length parse) 2)
+      (when (member (get-keyword (car parse)) (get-ontologies))
+	t))))
+
+(defmethod ?compact ((item t))
+  nil)
+
+(defmethod grow ((item string))
+  "Expands an ontology:term string to an iri, such as foaf:maker"
+  (if (get-iri item)
+      (get-iri item)
+      (when (?compact item)
+	(let ((parse (split-string #\: item)))
+	  (let ((ns (get-keyword (first parse)))
+		(node (second parse)))
+	    (get-iri (string+ (get-uri (getf (config :ontology) ns)) node)))))))
+
+(defmethod grow ((item t))
+  nil)
 
 (defun get-object (item)
-  (let ((parse (split-string #\^ item)))
-    (if (= (length parse) 3)
-	(let ((object (first parse))
-	      (type (third parse)))
-	  (cond ((string= type (getf (config :xsd) :int))
-		 (parse-integer (second (split-string #\" object))))
-		))
-	(string-trim '(#\") item)
-	)))
+  (cond ((?compact item)
+	 (grow item))
+	(t (let ((parse (split-string #\^ item)))
+	     (if (= (length parse) 3)
+		 (let ((object (first parse))
+		       (type (third parse)))
+		   (cond ((string= type (getf (config :xsd) :int))
+			  (parse-integer (second (split-string #\" object))))
+			 ))
+		 (string-trim '(#\") item)
+		 )))))
 
 (defmacro ag-request (url &key accept content (verb :get) (charset "utf-8") content-type)
   "This is the basic building block for http requests to the Allegrograph db"

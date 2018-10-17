@@ -4,30 +4,6 @@
 
 A common lisp library for the Solid framework - under development...
 
-## Usage
-
-```common-lisp
-(in-package :cl-solid)
-```
-
-Start Solid web service (uses same options as caveman2):
-
-```common-lisp
-(start :port 8080)
-;->Hunchentoot server is started.
-;->Listening on localhost:8080.
-```
-
-Create a new webid with new agent and container:
-```common-lisp
-(make-webid :name "Frederick Gibson")
-;->"<http://solid.example.com/node#3>"
-```
-
-[![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
-
-Graph visualization from make-webid command above
-
 ## Installation
 
 This library is being used and tested with Allegrograph graph db.
@@ -56,9 +32,28 @@ Until the library is released and added to quicklisp, to load:
 (ql:quickload :cl-solid)
 ```
 
-When first initiating cl-solid with a new Repository, to create the needed triples for your Solid agent and lock:
+When first initiating cl-solid:
 ```common-lisp
 (cl-solid:initiate-solid)
+
+Creating new Repository...
+Uploading Allegrograph Server Scripts...
+Uploading Solid required ontologies...
+Loading VCARD...
+Loading SCHEMA...
+Loading SPACE...
+Loading SOLID...
+Loading CERT...
+Loading VS...
+Loading VANN...
+Loading DCTERMS...
+Loading FOAF...
+Loading RDFS...
+Loading LDP...
+Loading RDF...
+Loading ACL...
+Creating new Repository Agent and locking ontology...
+T
 ```
 For Allegrograph users, write scripts to the graph db server on first use:
 ```common-lisp
@@ -71,6 +66,36 @@ To switch between configurations:
 (ql:quickload :osicat)
 (setf (osicat:environment-variable "APP_ENV") "development")
 ```
+
+## Usage
+
+```common-lisp
+(in-package :cl-solid)
+```
+
+Start Solid web service (uses same options as caveman2):
+
+```common-lisp
+(start :port 8080)
+;->Hunchentoot server is started.
+;->Listening on localhost:8080.
+```
+
+Create a new webid:
+```common-lisp
+(make-webid "gibsonf1" :name "Frederick Gibson")
+
+Creating Profile...
+Creating WebID...
+Creating WebID storage...
+;->"<http://gibsonf1.example.com/profile/card#me>"
+```
+
+[![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
+
+Graph visualization from make-webid command above
+
+
 
 ## Authors
 

@@ -25,6 +25,7 @@
 	   :get-pl-keys
 	   :triples->nquads
 	   :triples->json-ld
+	   :get-keyword
 	   )
   )
 
@@ -119,9 +120,16 @@ if there were an empty string between them."
   (cond ((?uri item)
 	 item)
 	((?iri item)
-	 (string-trim '(#\< #\>) item))))
+	 (string-trim '(#\< #\>) item))
+	))
 
 (defmethod get-uri ((item t))
+  nil)
+
+(defmethod get-keyword ((item string))
+  (intern (string-upcase item) "KEYWORD"))
+
+(defmethod get-keyword ((item t))
   nil)
 
 (defmethod get-pl-values ((property-list cons))
@@ -164,3 +172,7 @@ if there were an empty string between them."
   "triples generated from sparql-values - need to be in nquad format - output is string-output-stream (get-output-stream-string)"
   (when triples
     (cl-json-ld:jsd-to-string (car (from-rdf (triples->nquads triples))))))
+
+
+
+	
