@@ -40,7 +40,49 @@
 
 (defconfig :common
     `(:databases ((:maindb :sqlite3 :database-name ":memory:"))
-		 
+		 :ontology (:acl "<http://www.w3.org/ns/auth/acl#>"
+				 :rdf "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+				 :ldp "<http://www.w3.org/ns/ldp#>"
+				 :rdfs "<http://www.w3.org/2000/01/rdf-schema#>"
+				 :foaf "<http://xmlns.com/foaf/0.1/>"
+				 :dcterms "<http://purl.org/dc/terms/>"
+				 :vann "<http://purl.org/vocab/vann/>"
+				 :vs "<http://www.w3.org/2003/06/sw-vocab-status/ns#>"
+				 :cert "<http://www.w3.org/ns/auth/cert#>"
+				 :solid "<http://www.w3.org/ns/solid/terms#>"
+				 :space "<http://www.w3.org/ns/pim/space#>"
+				 :schema "<http://schema.org/>"
+				 :vcard "<http://www.w3.org/2006/vcard/ns#>")
+		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
+				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
+				       :ldp "https://lov.linkeddata.es/dataset/lov/vocabs/ldp/versions/2015-02-26.n3"
+				       :rdfs "https://lov.linkeddata.es/dataset/lov/vocabs/rdfs/versions/2014-02-25.n3"
+				       :foaf "https://lov.linkeddata.es/dataset/lov/vocabs/foaf/versions/2014-01-14.n3"
+				       :dcterms "https://lov.linkeddata.es/dataset/lov/vocabs/dcterms/versions/2012-06-14.n3"
+				       :vann "https://lov.linkeddata.es/dataset/lov/vocabs/vann/versions/2010-06-07.n3"
+				       :vs "https://lov.linkeddata.es/dataset/lov/vocabs/vs/versions/2011-12-12.n3"
+				       :cert "https://lov.linkeddata.es/dataset/lov/vocabs/cert/versions/2008-11-13.n3"
+				       :solid "http://www.w3.org/ns/solid/terms"
+				       :space "http://www.w3.org/ns/pim/space"
+				       :schema "https://lov.linkeddata.es/dataset/lov/vocabs/schema/versions/2016-08-09.n3"
+				       :vcard "https://lov.linkeddata.es/dataset/lov/vocabs/vcard/versions/2014-05-22.n3")
+		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
+				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+				     :ldp "http://www.w3.org/ns/ldp#"
+				     :rdfs "http://www.w3.org/2000/01/rdf-schema#"
+				     :foaf "http://xmlns.com/foaf/0.1/"
+				     :dcterms "http://purl.org/dc/terms/"
+				     :vann "http://purl.org/vocab/vann/"
+				     :space  "http://www.w3.org/ns/pim/space"
+				     :vs "http://www.w3.org/2003/06/sw-vocab-status/ns"
+				     :cert "http://www.w3.org/ns/auth/cert"
+				     :solid "http://www.w3.org/ns/solid/terms"
+				     :schema "http://schema.org/"
+				     :vcard "http://www.w3.org/2006/vcard/ns"
+				     )
+				    
+				      
+
 		 :e.agent "<http://xmlns.com/foaf/0.1/Agent>"
 		 :e.basic-container "<http://www.w3.org/ns/ldp#BasicContainer>"
 		 :e.group "<http://xmlns.com/foaf/0.1/Group>"

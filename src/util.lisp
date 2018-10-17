@@ -22,6 +22,7 @@
 	   :get-iri
 	   :get-uri
 	   :get-pl-values
+	   :get-pl-keys
 	   :triples->nquads
 	   :triples->json-ld
 	   )
@@ -132,6 +133,17 @@ if there were an empty string between them."
     ))
 
 (defmethod get-pl-values ((property-list t))
+  nil)
+
+(defmethod get-pl-keys ((property-list cons))
+  "Returns just the keys of the property list as a list, skipping the values"
+  (let ((result))
+    (dotimes (pv (/ (length property-list) 2))
+      (setf result (cons (nth (* pv 2) property-list) result)))
+    result
+    ))
+
+(defmethod get-pl-keys ((property-list t))
   nil)
 
 (defmethod triples->nquads ((triples cons))

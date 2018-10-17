@@ -35,20 +35,6 @@ A free version is available here: https://franz.com/agraph/downloads/
 
 Using the VM Allegrograph version is highly recommended with Virtualbox as you can then install sbcl/emacs/slime on the Ubuntu VM and devlop directly in that environment.
 
-The graph db used requires the following ontologies to be loaded:
-
-* http://www.w3.org/ns/auth/acl
-* https://lov.linkeddata.es/dataset/lov/vocabs/ldp
-* https://lov.linkeddata.es/dataset/lov/vocabs/rdf
-* https://lov.linkeddata.es/dataset/lov/vocabs/rdfs
-* https://lov.linkeddata.es/dataset/lov/vocabs/foaf
-* https://lov.linkeddata.es/dataset/lov/vocabs/dcterms
-* https://lov.linkeddata.es/dataset/lov/vocabs/vann
-* https://lov.linkeddata.es/dataset/lov/vocabs/vs
-* https://lov.linkeddata.es/dataset/lov/vocabs/cert
-* http://www.w3.org/ns/pim/space
-* http://www.w3.org/ns/solid/terms
-
 Configure your graph db settings in cl-solid/src/config - an example development configuration:
 
 ```common-lisp
@@ -76,7 +62,7 @@ When first initiating cl-solid with a new Repository, to create the needed tripl
 ```
 For Allegrograph users, write scripts to the graph db server on first use:
 ```common-lisp
-(update-server-scripts)
+(cl-solid:update-server-scripts)
 ```
 
 To switch between configurations:

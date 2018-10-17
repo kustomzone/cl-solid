@@ -6,7 +6,7 @@
 	)
   (:import-from :cl-solid/src/config
                 :config)
-  (:export 
+  (:export :get-triples->turtle
 	   ))
 
 (in-package :cl-solid/src/serialize)

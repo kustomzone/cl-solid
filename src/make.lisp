@@ -13,6 +13,8 @@
 (in-package :cl-solid/src/make)
 
 ;;NOTE: This implementation is using the web-id as a named graph for all triples related to that web-id for easy full graph retrieval
+;;user can select an id that is checked for uniqueness so that the resulting webid and their agent is http://userid.domain/profile/card#me
+
 
 (defun make-webid (&key agent name image nickname key container)
   "minimum required webid: webid is instance of e.personal-profile-document, has p.primary-topic with a valid Agent type"

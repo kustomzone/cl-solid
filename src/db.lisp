@@ -20,6 +20,8 @@
 	   :initiate-solid
 	   :server-script
 	   :?allegrograph
+	   :update-server-scripts
+	   :get-repo-name
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -34,7 +36,6 @@
   `(let ((*connection* ,conn))
      ,@body))
 
-;;graphdb - tested for Allegrograph
 
 (defun get-agent-iri ()
   (if (config :namespace)
@@ -53,8 +54,69 @@
 (defparameter *agent* (get-agent-iri) "IRI for the main Solid agent managing all PODs in this repository")
 (defparameter *lock* (get-lock-iri) "IRI for the lock used to prevent mutliple id writes at the same time")
 
+(defun get-server()
+  (string+ (config :domain) ":" (config :port)))
+
+(defun get-repository ()
+  (string+ (get-server) (config :repository)))
+
+(defun get-repo-name ()
+  (car (last (split-string #\/ (config :repository)))))
+
+(defun get-auth ()
+  `(,(config :user) . ,(config :password)))
+
+
+;;graphdb - tested for Allegrograph
+
+(defun ?allegrograph ()
+  (when (string= (config :graphdb) "Allegrograph")
+    t
+    ))
+
+(defun server-script (script arguments)
+  (when (?allegrograph)
+    (handler-case
+	(dex:post (string+ (get-repository) "/custom/" script)  :basic-auth (get-auth) :content arguments)
+      (error (err) (process-error err)))))
+
+(defun update-server-scripts ()
+  (when (?allegrograph)
+    (let* ((file "serialize.lisp")
+	   (rows
+	    (with-open-file (stream (asdf:system-relative-pathname 'cl-solid (string+ "src/server-scripts/" file)))
+	      (loop for line = (read-line stream nil)
+		 while line
+		 collect line)))
+	   (content ""))
+      (dolist (row rows)
+	(setf content (string+ content (format nil "~a~%" row))))
+      (print content)
+      (progn
+	(dex:put (string+ (get-repository) "/scripts/" file) :basic-auth (get-auth) :content content)
+	(dex:put (string+ (get-server) "/initfile") :basic-auth (get-auth) :content content))	
+      )))
+
+(defun upload-ontologies ()
+  (dolist (ontology (get-pl-keys (config :ontology)))
+    (format t "~%Loading ~A..." ontology)
+    (server-script "upload-ontology" (list `("repo" . ,(get-repo-name))
+					   `("location" . ,(getf (config :ontology-ttl) ontology))
+					   `("graph" . ,(getf (config :ontology-uri) ontology))))))
 
 (defun initiate-solid ()
+  "Initiates new repository on graph db - WARNING - this will delete current repostitory if it exists"
+  ;;first check if desired repository exists
+  (when (?allegrograph)
+    (format t "~%Creating new Repository...")
+    (dex:delete (get-repository) :basic-auth (get-auth))
+    (dex:put (get-repository) :basic-auth (get-auth))
+    (format t "~%Uploading Allegrograph Server Scripts...")
+    (update-server-scripts)
+    (format t "~%Uploading Solid required ontologies...")
+    (upload-ontologies)
+    )
+  (format t "~%Creating new Repository Agent and locking ontology...")
     (when (not (sparql-values (string+ "select ?o where { " *agent* " " (config :p.type) "?o .}")))	
 	(create-triple *agent* (config :p.type) (config :e.agent))
 	(create-triple *agent* (config :p.label) (config :agent-name))
@@ -184,19 +246,6 @@
 	  (values body status response-headers uri stream))
       (error (err) (process-error err)))))
 
-(defun get-server()
-  (string+ (config :domain) ":" (config :port)))
-
-(defun get-repository ()
-  (string+ (get-server) (config :repository)))
-
-(defun get-auth ()
-  `(,(config :user) . ,(config :password)))
-
-(defun ?allegrograph ()
-  (when (string= (config :graphdb) "Allegrograph")
-    t
-    ))
 
 (defun sparql2 (query &key (accept :json))
   (let* ((repository (string+ (config :domain) ":" (config :port) (config :repository)))
@@ -267,28 +316,7 @@
 		      )))
       (error (err) (process-error err)))))
 
-(defun server-script (script arguments)
-  (when (?allegrograph)
-    (handler-case
-	(dex:post (string+ (get-repository) "/custom/" script)  :basic-auth (get-auth) :content arguments)
-      (error (err) (process-error err)))))
 
-(defun update-server-scripts ()
-  (when (?allegrograph)
-    (let* ((file "serialize.lisp")
-	   (rows
-	    (with-open-file (stream (asdf:system-relative-pathname 'cl-solid (string+ "src/server-scripts/" file)))
-	      (loop for line = (read-line stream nil)
-		 while line
-		 collect line)))
-	   (content ""))
-      (dolist (row rows)
-	(setf content (string+ content (format nil "~a~%" row))))
-      (print content)
-      (progn
-	(dex:put (string+ (get-repository) "/scripts/" file) :basic-auth (get-auth) :content content)
-	(dex:put (string+ (get-server) "/initfile") :basic-auth (get-auth) :content content))	
-      )))
 
 
   
