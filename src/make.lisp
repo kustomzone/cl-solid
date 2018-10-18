@@ -52,6 +52,7 @@
 		  (favicon (get-iri (string+ base-web-id "//favicon.ico")))
 		  (index (get-iri (string+ base-web-id "//index.html")))
 		  (robots (get-iri (string+ base-web-id "//robots.txt")))
+		  (public-index (get-iri (string+ base-web-id "/settings/publicTypeIndex.ttl")))
 		  )
 	      
 	      (create-triple webid "ldp:inbox" inbox :graph webid)
@@ -92,12 +93,19 @@
 	      (create-triple webid "solid:account" account :graph webid)	    
 	      (create-triple webid "space:storage" account :graph webid)
 	      (create-triple webid "solid:privateTypeIndex" (get-iri (string+ base-web-id "/settings/privateTypeIndex.ttl")) :graph webid)
-	      (create-triple webid "solid:publicTypeIndex" (get-iri (string+ base-web-id "/settings/publicTypeIndex.ttl")) :graph webid)
+	      (create-triple webid "solid:publicTypeIndex" public-index :graph webid)
 
 	      (when (get-iri image) (create-triple webid "foaf:img" (get-iri image) :graph webid))
 	      (when (stringp nickname) (create-triple webid "foaf:nick" nickname :graph webid :typed (getf (config :xsd) :string)))
 	      (when (get-iri key) (create-triple webid "cert:key" (get-iri key) :graph webid))
 	      (when (stringp email) (create-triple webid "foaf:mbox" (string+ "<mailto:" email ">") :graph webid))
+
+	      (format t "~%Adding Web Access Control ACLs...")
+	      (make-acl webid webid webid :owner t)
+	      (make-acl account webid webid :owner t)
+	      (make-acl-public pub webid)
+	      (make-acl-public profile webid)
+	      (make-acl-public public-index webid)
 	      
 	      webid
 	      ))))))
@@ -119,4 +127,44 @@
   (dolist (i type)
     (make-type subject i graph)))
 
+(defun make-acl (node agent graph &key (type :agent) owner read write control append)
+  "Adds autorization acl to node - Current default when :owner flagged receives :control permission unless other permissions flagged"
+  ;;TODO check for exising acl on node and deal with implications / changes
+  (let ((node (grow node))
+	(agent (grow agent))
+	(graph (grow graph)))
+    (when (and node agent
+	       (or read write control append owner)
+	       (keywordp type))
+      
+      (when owner
+	(when (not (member t (list read write control append)))
+	  (setf control t)))
+      
+      (let ((auth (create-new-id)))
+	(make-type auth "acl:Authorization" graph)
+	
+	(when read
+	  (create-triple auth "acl:mode" "acl:Read" :graph graph))
+	(when write
+	  (create-triple auth "acl:mode" "acl:Write" :graph graph))
+	(when control 
+	  (create-triple auth "acl:mode" "acl:Control" :graph graph))
+	(when append
+	  (create-triple auth "acl:mode" "acl:Append" :graph graph))
+	
+	(cond ((eq type :agent)
+	       (create-triple auth "acl:agent" agent :graph graph))
+	      ((eq type :agent-group)
+	       (create-triple auth "acl:agentGroup" agent :graph graph))
+	      ((eq type :agent-class)
+	       (create-triple auth "acl:agentClass" agent :graph graph)))
+	
+	(when owner
+	  (create-triple auth "acl:owner" agent :graph graph))
+
+	(create-triple auth "acl:accessTo" node :graph graph)))))
+	      
+(defun make-acl-public (node graph)
+  (make-acl node "foaf:Agent" graph :read t :type :agent-class))
 
