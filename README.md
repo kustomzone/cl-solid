@@ -88,7 +88,7 @@ Adding Web Access Control ACLs...
 ;->"<http://gibsonf1.example.com/profile/card#me>"
 ```
 
-[![](https://graphmetrix.com/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
+[![](https://raw.githubusercontent.com/gibsonf1/cl-solid/master/static/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
 
 Graph visualization from make-webid command above
 
