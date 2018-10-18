@@ -4,6 +4,10 @@
 
 A common lisp library for the Solid framework - under development...
 
+[![](https://raw.githubusercontent.com/gibsonf1/cl-solid/master/static/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
+
+Graph visualization after make-webid command
+
 ## Installation
 
 This library is being used and tested with Allegrograph graph db.
@@ -87,10 +91,6 @@ Creating WebID storage...
 Adding Web Access Control ACLs...
 ;->"<http://gibsonf1.example.com/profile/card#me>"
 ```
-
-[![](https://raw.githubusercontent.com/gibsonf1/cl-solid/master/static/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
-
-Graph visualization from make-webid command above
 
 
 
