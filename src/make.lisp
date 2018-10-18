@@ -106,6 +106,9 @@
 	      (make-acl-public pub webid)
 	      (make-acl-public profile webid)
 	      (make-acl-public public-index webid)
+	      (make-acl-public index webid)
+	      (make-acl-public robots webid)
+	      (make-acl-public favicon webid)
 	      
 	      webid
 	      ))))))
