@@ -27,6 +27,7 @@
 	   :triples->json-ld
 	   :get-keyword
 	   :get-base-uri
+	   :print-hash
 	   )
   )
 
@@ -184,6 +185,12 @@ if there were an empty string between them."
   "triples generated from sparql-values - need to be in nquad format - output is string-output-stream (get-output-stream-string)"
   (when triples
     (cl-json-ld:jsd-to-string (car (from-rdf (triples->nquads triples))))))
+
+(defmethod print-hash ((hash hash-table))
+  (maphash (lambda (k v) (print (list k v))) hash))
+
+(defmethod print-hash ((hash t))
+  nil)
 
 
 

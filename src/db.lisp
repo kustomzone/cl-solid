@@ -174,6 +174,7 @@
       (format t "~%Loading ~A..." ontology)
       (server-script "upload-ontology" (list `("repo" . ,(get-repo-name))
 					     `("location" . ,(getf (config :ontology-ttl) ontology))
+					     `("base-uri" . ,(getf (config :ontology) ontology))
 					     `("graph" . ,(getf (config :ontology-uri) ontology)))))))
 
 (defun update-index ()
