@@ -52,7 +52,9 @@
 				 :solid "<http://www.w3.org/ns/solid/terms#>"
 				 :space "<http://www.w3.org/ns/pim/space#>"
 				 :schema "<http://schema.org/>"
-				 :vcard "<http://www.w3.org/2006/vcard/ns#>")
+				 :vcard "<http://www.w3.org/2006/vcard/ns#>"
+				 :org "<http://www.w3.org/ns/org#>"
+				 )
 		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
 				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
 				       :ldp "https://lov.linkeddata.es/dataset/lov/vocabs/ldp/versions/2015-02-26.n3"
@@ -65,7 +67,9 @@
 				       :solid "http://www.w3.org/ns/solid/terms"
 				       :space "http://www.w3.org/ns/pim/space"
 				       :schema "https://lov.linkeddata.es/dataset/lov/vocabs/schema/versions/2016-08-09.n3"
-				       :vcard "https://lov.linkeddata.es/dataset/lov/vocabs/vcard/versions/2014-05-22.n3")
+				       :vcard "https://lov.linkeddata.es/dataset/lov/vocabs/vcard/versions/2014-05-22.n3"
+				       :org "https://lov.linkeddata.es/dataset/lov/vocabs/org/versions/2014-04-12.n3"
+				       )
 		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
 				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 				     :ldp "http://www.w3.org/ns/ldp#"
@@ -79,6 +83,7 @@
 				     :solid "http://www.w3.org/ns/solid/terms"
 				     :schema "http://schema.org/"
 				     :vcard "http://www.w3.org/2006/vcard/ns"
+				     :org "http://www.w3.org/ns/org#"
 				     )
 				    
 				      

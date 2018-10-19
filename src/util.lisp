@@ -26,6 +26,7 @@
 	   :triples->nquads
 	   :triples->json-ld
 	   :get-keyword
+	   :get-base-uri
 	   )
   )
 
@@ -125,6 +126,17 @@ if there were an empty string between them."
 
 (defmethod get-uri ((item t))
   nil)
+
+(defmethod get-base-uri ((item string))
+  (when (?iri item)
+    (setf item (get-uri item)))
+  (get-base-uri (quri:uri item)))
+
+(defmethod get-base-uri ((item quri.uri:uri))
+  (let ((host (quri:uri-host item))
+	(scheme (quri:uri-scheme item)))
+    (when (and host scheme)
+      (string+ scheme "://" host))))
 
 (defmethod get-keyword ((item string))
   (intern (string-upcase item) "KEYWORD"))

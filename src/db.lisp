@@ -4,7 +4,9 @@
 	:cl-solid/src/util
 	)
   (:import-from :cl-solid/src/config
-                :config)
+                :config
+		:productionp
+		:developmentp)
   (:import-from :dexador)
   (:export :connection-settings
            :db
@@ -24,6 +26,20 @@
 	   :update-server-scripts
 	   :get-repo-name
 	   :get-ontologies
+	   :get-profile
+	   :get-root
+	   :get-settings
+	   :get-inbox
+	   :get-card
+	   :get-webid
+	   :get-public
+	   :get-favicon
+	   :get-index
+	   :get-robots
+	   :get-public-index
+	   :get-private-index
+	   :get-preferences
+	   :get-well-known
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -71,6 +87,56 @@
 (defun get-auth ()
   `(,(config :user) . ,(config :password)))
 
+;;Solid standard items
+
+(defun get-webid (item)
+  (get-location item "/profile/card#me"))
+
+(defun get-profile (item)
+  (get-location item "/profile/"))
+
+(defun get-card (item)
+  (get-location item "/profile/card"))
+
+(defun get-root (item)
+  (get-location item "/"))
+
+(defun get-settings (item)
+  (get-location item "/settings/"))
+
+(defun get-inbox (item)
+  (get-location item "/inbox/"))
+
+(defun get-public (item)
+  (get-location item "/public/"))
+
+(defun get-favicon (item)
+  (get-location item "/favicon.ico"))
+
+(defun get-index (item)
+  (get-location item "/index.html"))
+
+(defun get-robots (item)
+  (get-location item "/robots.txt"))
+
+(defun get-public-index (item)
+  (get-location item "/settings/publicTypeIndex.ttl"))
+
+(defun get-private-index (item)
+  (get-location item "/settings/privateTypeIndex.ttl"))
+
+(defun get-preferences (item)
+  (get-location item "/settings/preferences.ttl"))
+
+(defun get-well-known (item)
+  (get-location item "/.well-known/"))
+
+(defun get-location (item target)
+  (when (and item (stringp target))
+    (let ((base-uri (get-base-uri item)))
+      (when base-uri
+	(get-iri (string+ base-uri target))))))
+
 
 ;;graphdb - tested for Allegrograph
 
@@ -110,6 +176,12 @@
 					     `("location" . ,(getf (config :ontology-ttl) ontology))
 					     `("graph" . ,(getf (config :ontology-uri) ontology)))))))
 
+(defun update-index ()
+  (when (?allegrograph)
+    (dex:put (string+ (get-repository) "/freetext/indices/web")
+	     :basic-auth (get-auth)
+	     :content "{\"predicates\":[],\"indexLiterals\":true,\"indexResources\":\"short\",\"indexFields\":[\"subject\",\"predicate\",\"object\",\"graph\"],\"minimumWordSize\":3,\"stopWords\":[\"and\",\"are\",\"but\",\"for\",\"into\",\"not\",\"such\",\"that\",\"the\",\"their\",\"then\",\"there\",\"these\",\"they\",\"this\",\"was\",\"will\",\"with\"],\"wordFilters\":[],\"innerChars\":[],\"borderChars\":[],\"tokenizer\":\"default\"}")))
+
 (defun initiate-solid ()
   "Initiates new repository on graph db - WARNING - this will delete current repostitory if it exists"
   ;;first check if desired repository exists
@@ -119,16 +191,19 @@
     (dex:put (get-repository) :basic-auth (get-auth))
     (format t "~%Uploading Allegrograph Server Scripts...")
     (update-server-scripts)
-    (format t "~%Uploading Solid required ontologies...")
+    (format t "~%Uploading Solid related ontologies...")
     (upload-ontologies)
     )
   (format t "~%Creating new Repository Agent and locking ontology...")
-    (when (not (sparql-values (string+ "select ?o where { " *agent* " " (config :p.type) "?o .}")))	
-	(create-triple *agent* (config :p.type) (config :e.agent))
-	(create-triple *agent* (config :p.label) (config :agent-name))
-	(create-triple *agent* (config :p.id) "2" :typed :int )
-	(create-triple *lock* (config :p.type) (config :e.progress-code) )
-	(create-triple *lock* (config :p.label) "Locked")))
+  (when (not (sparql-values (string+ "select ?o where { " *agent* " " (config :p.type) "?o .}")))	
+    (create-triple *agent* (config :p.type) (config :e.agent))
+    (create-triple *agent* (config :p.label) (config :agent-name))
+    (create-triple *agent* (config :p.id) "2" :typed :int )
+    (create-triple *lock* (config :p.type) (config :e.progress-code) )
+    (create-triple *lock* (config :p.label) "Locked"))
+  (format t "~%Generating Free Text Index...")
+  (update-index)
+  )
 
 (defun get-current-id ()
   (let ((values (sparql-values (string+ "select ?o where {" *agent* (config :p.id) " ?o}"))))

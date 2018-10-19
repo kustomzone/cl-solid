@@ -18,43 +18,45 @@
 ;;user can select an id that is checked for uniqueness so that the resulting webid and their agent is http://userid.domain/profile/card#me
 
 
-(defun make-webid (userid &key name image nickname key email)
+(defun make-webid (userid &key name image nickname key email company company-name company-id)
   "minimum required webid: webid is instance of e.personal-profile-document, has p.primary-topic with a valid Agent type"
   ;;check that webid is unique
   (when (stringp userid)
     (let* ((parse-namespace (split-string #\/ (config :namespace)))
 	   (base-web-id (string+ (first parse-namespace) "//" userid "." (third parse-namespace)))
-	   (profile (string+ base-web-id "/profile/card"))
-	   (webid (get-iri (string+ profile "#me")))
-	   (profile (get-iri profile))
+	   (webid (get-webid base-web-id))
 	   )
       (if (sparql-values (string+ "select ?o where {" webid " ?p ?o .}"))
 	  (format t "~%ERROR: This webid already exists - try again with another userid")
-	  (when (and webid profile)
-	    (format t "~%Creating Profile...")
-	    (make-type profile "foaf:PersonalProfileDocument" webid)
-	    (create-triple profile "foaf:maker" webid :graph webid)
-	    (create-triple profile "foaf:primaryTopic" webid :graph webid)
+	  (when webid
 
 	    (format t "~%Creating WebID...")
 	    (make-type webid (list "schema:Person" "foaf:Person") webid)
 	    (when (stringp name)(create-triple webid "vcard:fn" name :graph webid :typed (getf (config :xsd) :string))
 		  (create-triple webid "foaf:name" name :graph webid :typed (getf (config :xsd) :string)))
 	    
-	    (format t "~%Creating WebID Account...")
-	    (let ((inbox (get-iri (string+ base-web-id "//inbox/")))
-		  (prefs (get-iri (string+ base-web-id "/settings/prefs.ttl")))
-		  (account (get-iri (string+ base-web-id "/")))
-		  (well-known (get-iri (string+ base-web-id "//.well-known/")))
-		  (pro (get-iri (string+ base-web-id "//profile/")))
-		  (pub (get-iri (string+ base-web-id "//public/")))
-		  (set (get-iri (string+ base-web-id "//settings/")))
-		  (favicon (get-iri (string+ base-web-id "//favicon.ico")))
-		  (index (get-iri (string+ base-web-id "//index.html")))
-		  (robots (get-iri (string+ base-web-id "//robots.txt")))
-		  (public-index (get-iri (string+ base-web-id "/settings/publicTypeIndex.ttl")))
+	    (let ((inbox (get-inbox base-web-id))
+		  (prefs (get-preferences base-web-id))
+		  (account (get-root base-web-id))
+		  (well-known (get-well-known base-web-id))
+		  (pro (get-profile base-web-id))
+		  (pub (get-public base-web-id))
+		  (set (get-settings base-web-id))
+		  (favicon (get-favicon base-web-id))
+		  (index (get-index base-web-id))
+		  (robots (get-robots base-web-id))
+		  (public-index (get-public-index base-web-id))
+		  (private-index (get-private-index base-web-id))
+		  (card (get-card base-web-id))
 		  )
-	      
+
+	      (format t "~%Creating Profile...")
+	      (make-type pro "foaf:PersonalProfileDocument" webid)
+	      (create-triple pro "foaf:maker" webid :graph webid)
+	      (create-triple pro "foaf:primaryTopic" webid :graph webid)
+	      (make-contain pro card webid)
+
+	      (format t "~%Creating WebID Account...")
 	      (create-triple webid "ldp:inbox" inbox :graph webid)
 	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container") webid)
 
@@ -65,12 +67,9 @@
 	      (make-type account (list "ldp:BasicContainer" "ldp:Container") webid)
 	      (make-contain account
 			    (list well-known
-				  favicon
 				  inbox
-				  index
 				  pro
 				  pub
-				  (get-iri (string+ base-web-id "//robots.txt"))
 				  set)
 			    webid)
 	      
@@ -85,14 +84,20 @@
 	      (make-type pro (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
 
 	      (make-type pub (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-contain pub (list public-index
+				      favicon
+				      robots
+				      index)
+			    webid)
 
 	      (make-type robots (list "<http://www.w3.org/ns/iana/media-types/text/plain#Resource>" "ldp:Resource") webid)
 
 	      (make-type set (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-contain set prefs webid)
 
 	      (create-triple webid "solid:account" account :graph webid)	    
 	      (create-triple webid "space:storage" account :graph webid)
-	      (create-triple webid "solid:privateTypeIndex" (get-iri (string+ base-web-id "/settings/privateTypeIndex.ttl")) :graph webid)
+	      (create-triple webid "solid:privateTypeIndex" private-index :graph webid)
 	      (create-triple webid "solid:publicTypeIndex" public-index :graph webid)
 
 	      (when (get-iri image) (create-triple webid "foaf:img" (get-iri image) :graph webid))
@@ -104,11 +109,11 @@
 	      (make-acl webid webid webid :owner t)
 	      (make-acl account webid webid :owner t)
 	      (make-acl-public pub webid)
-	      (make-acl-public profile webid)
-	      (make-acl-public public-index webid)
-	      (make-acl-public index webid)
-	      (make-acl-public robots webid)
-	      (make-acl-public favicon webid)
+	      (make-acl-public pro webid)
+	      (make-acl inbox "foaf:Agent" webid :append t :type :agent-class)
+	      (make-acl inbox webid webid :read t)
+
+	      ;;if company is true, make a company by that name
 	      
 	      webid
 	      ))))))
