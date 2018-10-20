@@ -118,6 +118,10 @@
 	      webid
 	      ))))))
 
+(defun make-company (company-id company-name delegate &key image nickname key email)
+  )
+  
+
 ;;Containers: https://www.w3.org/TR/2015/REC-ldp-20150226/
 
     

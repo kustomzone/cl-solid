@@ -28,6 +28,7 @@
 	   :get-keyword
 	   :get-base-uri
 	   :print-hash
+	   :format-hash
 	   )
   )
 
@@ -192,6 +193,9 @@ if there were an empty string between them."
 (defmethod print-hash ((hash t))
   nil)
 
+(defun format-hash (hash &key (destination t))
+  (when (eq (type-of hash) 'hash-table)
+    (maphash (lambda (k v) (format destination "~%~A: ~A" k v)) hash)))
 
 
 	
