@@ -1,9 +1,11 @@
 (in-package :cl-user)
 (defpackage #:cl-solid/src/config
-  (:use :cl)
+  (:use :cl
+	:cl-solid/src/util)
   (:import-from :envy
                 :config-env-var
-                :defconfig)
+                :defconfig
+		)
   (:export :config
            :*application-root*
            :*static-directory*

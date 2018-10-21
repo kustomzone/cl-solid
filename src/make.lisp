@@ -25,15 +25,19 @@
     (let* ((parse-namespace (split-string #\/ (config :namespace)))
 	   (base-web-id (string+ (first parse-namespace) "//" userid "." (third parse-namespace)))
 	   (webid (get-webid base-web-id))
+	   (base-id (get-iri base-web-id))
 	   )
-      (if (sparql-values (string+ "select ?o where {" webid " ?p ?o .}"))
+      (if (sparql-values (string+ "select ?o where {" base-id " ?p ?o .}"))
 	  (format t "~%ERROR: This webid already exists - try again with another userid")
 	  (when webid
 
 	    (format t "~%Creating WebID...")
-	    (make-type webid (list "schema:Person" "foaf:Person") webid)
-	    (when (stringp name)(create-triple webid "vcard:fn" name :graph webid :typed (getf (config :xsd) :string))
-		  (create-triple webid "foaf:name" name :graph webid :typed (getf (config :xsd) :string)))
+	    ;;create new node lock
+	    (create-triple (get-lock-iri base-id) (config :p.type) (config :e.progress-code) :graph base-id)
+	    (create-triple (get-lock-iri base-id) (config :p.label) "Locked" :graph base-id)
+	    (make-type webid (list "schema:Person" "foaf:Person") base-id)
+	    (when (stringp name)(create-triple webid "vcard:fn" name :graph base-id :typed (getf (config :xsd) :string))
+		  (create-triple webid "foaf:name" name :graph base-id :typed (getf (config :xsd) :string)))
 	    
 	    (let ((inbox (get-inbox base-web-id))
 		  (prefs (get-preferences base-web-id))
@@ -51,67 +55,67 @@
 		  )
 
 	      (format t "~%Creating Profile...")
-	      (make-type pro "foaf:PersonalProfileDocument" webid)
-	      (create-triple pro "foaf:maker" webid :graph webid)
-	      (create-triple pro "foaf:primaryTopic" webid :graph webid)
-	      (make-contain pro card webid)
+	      (make-type pro "foaf:PersonalProfileDocument" base-id)
+	      (create-triple pro "foaf:maker" webid :graph base-id)
+	      (create-triple pro "foaf:primaryTopic" webid :graph base-id)
+	      (make-contain pro card base-id)
 
 	      (format t "~%Creating WebID Account...")
-	      (create-triple webid "ldp:inbox" inbox :graph webid)
-	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container") webid)
+	      (create-triple webid "ldp:inbox" inbox :graph base-id)
+	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container") base-id)
 
-	      (create-triple webid "space:preferencesFile" prefs :graph webid)
-	      (make-type prefs "space:ConfigurationFile" webid)
-	      (create-triple prefs "dcterms:title" "Preferences file" :graph webid :typed (getf (config :xsd) :string))
+	      (create-triple webid "space:preferencesFile" prefs :graph base-id)
+	      (make-type prefs "space:ConfigurationFile" base-id)
+	      (create-triple prefs "dcterms:title" "Preferences file" :graph base-id :typed (getf (config :xsd) :string))
 
-	      (make-type account (list "ldp:BasicContainer" "ldp:Container") webid)
+	      (make-type account (list "ldp:BasicContainer" "ldp:Container") base-id)
 	      (make-contain account
 			    (list well-known
 				  inbox
 				  pro
 				  pub
 				  set)
-			    webid)
+			    base-id)
 	      
-	      (make-type well-known (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-type well-known (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") base-id)
 
-	      (make-type favicon (list "ldp:Resource" "<http://www.w3.org/ns/iana/media-types/image/vnd.microsoft.icon#Resource>") webid)
+	      (make-type favicon (list "ldp:Resource" "<http://www.w3.org/ns/iana/media-types/image/vnd.microsoft.icon#Resource>") base-id)
 
-	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-type inbox (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") base-id)
 
-	      (make-type index (list "<http://www.w3.org/ns/iana/media-types/text/html#Resource>" "ldp:Resource") webid)
+	      (make-type index (list "<http://www.w3.org/ns/iana/media-types/text/html#Resource>" "ldp:Resource") base-id)
 
-	      (make-type pro (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-type pro (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") base-id)
 
-	      (make-type pub (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
+	      (make-type pub (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") base-id)
 	      (make-contain pub (list public-index
 				      favicon
 				      robots
 				      index)
-			    webid)
+			    base-id)
 
-	      (make-type robots (list "<http://www.w3.org/ns/iana/media-types/text/plain#Resource>" "ldp:Resource") webid)
+	      (make-type robots (list "<http://www.w3.org/ns/iana/media-types/text/plain#Resource>" "ldp:Resource") base-id)
 
-	      (make-type set (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") webid)
-	      (make-contain set prefs webid)
+	      (make-type set (list "ldp:BasicContainer" "ldp:Container" "ldp:Resource") base-id)
+	      (make-contain set prefs base-id)
 
-	      (create-triple webid "solid:account" account :graph webid)	    
-	      (create-triple webid "space:storage" account :graph webid)
-	      (create-triple webid "solid:privateTypeIndex" private-index :graph webid)
-	      (create-triple webid "solid:publicTypeIndex" public-index :graph webid)
+	      (create-triple webid "solid:account" account :graph base-id)	    
+	      (create-triple webid "space:storage" account :graph base-id)
+	      (create-triple webid "solid:privateTypeIndex" private-index :graph base-id)
+	      (create-triple webid "solid:publicTypeIndex" public-index :graph base-id)
 
-	      (when (get-iri image) (create-triple webid "foaf:img" (get-iri image) :graph webid))
-	      (when (stringp nickname) (create-triple webid "foaf:nick" nickname :graph webid :typed (getf (config :xsd) :string)))
-	      (when (get-iri key) (create-triple webid "cert:key" (get-iri key) :graph webid))
-	      (when (stringp email) (create-triple webid "foaf:mbox" (string+ "<mailto:" email ">") :graph webid))
+	      (when (get-iri image) (create-triple webid "foaf:img" (get-iri image) :graph base-id))
+	      (when (stringp nickname) (create-triple webid "foaf:nick" nickname :graph base-id :typed (getf (config :xsd) :string)))
+	      (when (get-iri key) (create-triple webid "cert:key" (get-iri key) :graph base-id))
+	      (when (stringp email) (create-triple webid "foaf:mbox" (string+ "<mailto:" email ">") :graph base-id))
 
 	      (format t "~%Adding Web Access Control ACLs...")
-	      (make-acl webid webid webid :owner t)
-	      (make-acl account webid webid :owner t)
-	      (make-acl-public pub webid)
-	      (make-acl-public pro webid)
-	      (make-acl inbox "foaf:Agent" webid :append t :type :agent-class)
-	      (make-acl inbox webid webid :read t)
+	      (make-acl webid webid base-id :owner t)
+	      (make-acl account webid base-id :owner t)
+	      (make-acl-public pub base-id)
+	      (make-acl-public pro base-id)
+	      (make-acl inbox "foaf:Agent" base-id :append t :type :agent-class)
+	      (make-acl inbox webid base-id :read t)
 
 	      ;;if company is true, make a company by that name
 	      
@@ -153,7 +157,7 @@
 	(when (not (member t (list read write control append)))
 	  (setf control t)))
       
-      (let ((auth (create-new-id)))
+      (let ((auth (create-new-id graph)))
 	(make-type auth "acl:Authorization" graph)
 	
 	(when read

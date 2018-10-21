@@ -23,7 +23,9 @@
        (cond ((string= ext "n3")
 	      (load-turtle location :graph graph))
 	     ((string= ext "rdf")
-	      (load-rdf/xml location :graph graph :base-uri base-uri)))))
+	      (load-rdf/xml location :graph graph :base-uri base-uri))
+	     (t (load-turtle location :graph graph))
+	     )))
    (close-triple-store :commit t)
  ))
 

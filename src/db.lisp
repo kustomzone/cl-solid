@@ -19,7 +19,6 @@
 	   :get-typed-literal
 	   :grow
 	   :get-object
-	   :*agent*
 	   :initiate-solid
 	   :server-script
 	   :?allegrograph
@@ -28,6 +27,7 @@
 	   :get-ontologies
 	   :get-profile
 	   :get-root
+	   :get-graph
 	   :get-settings
 	   :get-inbox
 	   :get-card
@@ -40,6 +40,7 @@
 	   :get-private-index
 	   :get-preferences
 	   :get-well-known
+	   :get-lock-iri
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -54,23 +55,24 @@
   `(let ((*connection* ,conn))
      ,@body))
 
-
-(defun get-agent-iri ()
+#|
+(defun get-agent-iri (graph)
   (if (config :namespace)
       (string+ "<" (config :namespace) "1>")
       (progn
 	(format t "~%ERROR: Need to Configure :namespace in :cl-solid/src/util")
 	nil)))
+|#
 	
-(defun get-lock-iri ()
-  (if (config :namespace)
-      (string+ "<" (config :namespace) "2>")
-      (progn
-	(format t "~%ERROR: Need to Configure :namespace in :cl-solid/src/util")
-	nil)))
-
+(defun get-lock-iri (graph)
+  (let ((graph (get-uri graph)))
+    (when graph
+      (string+ "<" graph "/node/0>")
+      )))
+#|
 (defparameter *agent* (get-agent-iri) "IRI for the main Solid agent managing all PODs in this repository")
 (defparameter *lock* (get-lock-iri) "IRI for the lock used to prevent mutliple id writes at the same time")
+|#
 
 (defun get-server()
   (string+ (config :domain) ":" (config :port)))
@@ -100,6 +102,9 @@
 
 (defun get-root (item)
   (get-location item "/"))
+
+(defun get-graph (item)
+  (get-location item ""))
 
 (defun get-settings (item)
   (get-location item "/settings/"))
@@ -195,87 +200,99 @@
     (format t "~%Uploading Solid related ontologies...")
     (upload-ontologies)
     )
-  (format t "~%Creating new Repository Agent and locking ontology...")
-  (when (not (sparql-values (string+ "select ?o where { " *agent* " " (config :p.type) "?o .}")))	
-    (create-triple *agent* (config :p.type) (config :e.agent))
-    (create-triple *agent* (config :p.label) (config :agent-name))
-    (create-triple *agent* (config :p.id) "2" :typed :int )
-    (create-triple *lock* (config :p.type) (config :e.progress-code) )
-    (create-triple *lock* (config :p.label) "Locked"))
   (format t "~%Generating Free Text Index...")
   (update-index)
   )
 
-(defun get-current-id ()
-  (let ((values (sparql-values (string+ "select ?o where {" *agent* (config :p.id) " ?o}"))))
-    (when values
-      (get-object (caar values)))))
+(defun get-current-id (graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (let ((values (sparql-values (string+ "select ?o where {" graph (config :p.id) " ?o}"))))
+	(if values
+	    (get-object (caar values))
+	    (progn
+	      (create-triple graph (config :p.id) "1" :typed :int :graph graph)
+	      1)
+	    )))))
 
-(defun create-new-id ()
-  (let* ((IRI (create-new-ids))
-	 (IRI (if (listp IRI)(car IRI) nil)))
-    IRI))
+(defun create-new-id (graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (let* ((IRI (create-new-ids graph))
+	     (IRI (if (listp IRI)(car IRI) nil)))
+	IRI))))
 
-(defun create-new-ids (&optional qty)
-  (let* ((current-id (get-current-id))
-	 (id-list nil)
-	 (qty (if qty qty 1))
-	 )
-    (dotimes (i qty)(setf id-list (cons (+ 1 i current-id) id-list)))
-    (when id-list
-      (let* ((result (write-new-id (first id-list) current-id 0))
-	     (result-lisp (if (or (stringp result)(string= (type-of result) "BOOLEAN"))
-			      result
-			      (json->lisp result)))
-	     (final (if (equal result-lisp T)
-			(reverse id-list)
-			result-lisp)))
-	(if final
-	    (mapcar #'(lambda(x)(string+ "<" (config :namespace) (write-to-string x) ">")) final))
-      ))))
+(defun create-new-ids (graph &optional qty)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (let* ((current-id (get-current-id graph))
+	     (id-list nil)
+	     (qty (if qty qty 1))
+	     )
+	(dotimes (i qty)(setf id-list (cons (+ 1 i current-id) id-list)))
+	(when id-list
+	  (let* ((result (write-new-id (first id-list) current-id 0 graph))
+		 (result-lisp (if (or (stringp result)(string= (type-of result) "BOOLEAN"))
+				  result
+				  (json->lisp result)))
+		 (final (if (equal result-lisp T)
+			    (reverse id-list)
+			    result-lisp)))
+	    (if final
+		(mapcar #'(lambda(x)(string+ "<" (get-uri graph) "/node/" (write-to-string x) ">")) final))
+	    ))))))
 
-(defun write-new-id (int current-id iteration)
-  (if (eq iteration 5)
-      (progn ;TODO trigger email notification or other that this happened
-	(sleep 1)
-	(write-new-id int current-id 0)
-	)
-      (let ((iteration (+ iteration 1)))
-	(if (?locked)
-	    (write-new-id int current-id iteration)
-	    (when (integerp int)
-	      (lock-agent)
-	      (create-triple *agent* (config :p.id) (write-to-string int) :typed :int)
-	      (delete-triple *agent* (config :p.id) (write-to-string current-id) :typed :int)
-	      (unlock-agent)
-	      )))))
+(defun write-new-id (int current-id iteration graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (if (eq iteration 5)
+	  (progn ;TODO trigger email notification or other that this happened
+	    (sleep 1)
+	    (write-new-id int current-id 0 graph)
+	    )
+	  (let ((iteration (+ iteration 1)))
+	    (if (?locked graph)
+		(write-new-id int current-id iteration graph)
+		(when (integerp int)
+		  (lock-graph graph)
+		  (create-triple graph (config :p.id) (write-to-string int) :typed :int :graph graph)
+		  (delete-triple graph (config :p.id) (write-to-string current-id) :typed :int :graph graph)
+		  (unlock-graph graph)
+		  )))))))  
 
-(defun ?locked ()
-  (let ((locked (sparql-values (string+ "select ?l where { " *agent* " " (config :p.status) " ?l .}"))))
-    (if locked
-	(when (string= (caar locked) *lock*)
-	    t)
-	)))
+(defun ?locked (graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (let ((query (string+ "select ?l from named " graph " where { graph ?g {" graph " " (config :p.status) " ?l .}}")))
+      (let ((locked (sparql-values query)))
+	(if locked
+	    (when (string= (caar locked) (get-lock-iri graph))
+	      t)
+	    ))))))
 
-(defun lock-agent ()
-  (if (not (?locked))
-      (let ((result (create-triple *agent* (config :p.status) *lock*)))
-	result
-	)))
+(defun lock-graph (graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (if (not (?locked graph))
+	  (let ((result (create-triple graph (config :p.status) (get-lock-iri graph) :graph graph)))
+	    result
+	    )))))
 
-(defun unlock-agent ()
-  (if (?locked)
-      (let ((result (delete-triple *agent* (config :p.status) *lock*)))
-	result
-	)))
+(defun unlock-graph (graph)
+  (let ((graph (get-iri graph)))
+    (when graph
+      (if (?locked graph)
+	  (let ((result (delete-triple graph (config :p.status) (get-lock-iri graph) :graph graph)))
+	    result
+	    )))))
 
-(defun create-triple (subject predicate object &key (graph *agent*) typed)
+(defun create-triple (subject predicate object &key graph typed)
   (modify-triple subject predicate object :graph graph :typed typed :action "INSERT"))
 
-(defun delete-triple (subject predicate object &key (graph *agent*) typed)
+(defun delete-triple (subject predicate object &key graph typed)
   (modify-triple subject predicate object :graph graph :typed typed :action "DELETE"))
 
-(defun modify-triple (subject predicate object &key (graph *agent*) typed action) 
+(defun modify-triple (subject predicate object &key graph typed action) 
   (let ((subject (grow subject))
 	(predicate (grow predicate))
 	(object (if typed

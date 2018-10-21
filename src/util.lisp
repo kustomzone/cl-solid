@@ -90,7 +90,7 @@ if there were an empty string between them."
 	  t)))
 
 (defmethod ?uri ((item string))
-  (?uri (quri:uri item)))
+    (?uri (quri:uri item)))
 
 (defmethod ?uri ((item t))
   nil)
