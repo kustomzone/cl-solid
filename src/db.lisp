@@ -25,6 +25,7 @@
 	   :update-server-scripts
 	   :get-repo-name
 	   :get-ontologies
+	   :get-graphs
 	   :get-profile
 	   :get-root
 	   :get-graph
@@ -86,13 +87,22 @@
 (defun get-ontologies ()
   (get-pl-keys (config :ontology)))
 
+(defun get-graphs ()
+  (let ((graphs (sparql-values "select ?g where {graph ?g {}}")))
+    (when graphs
+      (mapcar #'car graphs))))
+
 (defun get-auth ()
   `(,(config :user) . ,(config :password)))
 
 ;;Solid standard items
 
-(defun get-webid (item)
-  (get-location item "/profile/card#me"))
+;;need to make "us" for company - TODO need company check for already created ids
+(defun get-webid (item &key company)
+  (let ((ref (if company
+		 "us"
+		 "me")))
+  (get-location item (string+ "/profile/card#" ref))))
 
 (defun get-profile (item)
   (get-location item "/profile/"))

@@ -7,7 +7,7 @@
   (:import-from :cl-solid/src/config
                 :config)
   (:export :make-webid
-	   :make-agent
+	   :make-company
 	   ))
 
 (in-package :cl-solid/src/make)
@@ -18,13 +18,13 @@
 ;;user can select an id that is checked for uniqueness so that the resulting webid and their agent is http://userid.domain/profile/card#me
 
 
-(defun make-webid (userid &key name image nickname key email company company-name company-id)
+(defun make-webid (userid &key name image nickname key email company)
   "minimum required webid: webid is instance of e.personal-profile-document, has p.primary-topic with a valid Agent type"
   ;;check that webid is unique
   (when (stringp userid)
     (let* ((parse-namespace (split-string #\/ (config :namespace)))
 	   (base-web-id (string+ (first parse-namespace) "//" userid "." (third parse-namespace)))
-	   (webid (get-webid base-web-id))
+	   (webid (get-webid base-web-id :company company))
 	   (base-id (get-iri base-web-id))
 	   )
       (if (sparql-values (string+ "select ?o where {" base-id " ?p ?o .}"))
@@ -35,7 +35,10 @@
 	    ;;create new node lock
 	    (create-triple (get-lock-iri base-id) (config :p.type) (config :e.progress-code) :graph base-id)
 	    (create-triple (get-lock-iri base-id) (config :p.label) "Locked" :graph base-id)
-	    (make-type webid (list "schema:Person" "foaf:Person") base-id)
+	    (let ((id-type (if company
+			       '("foaf:Organization" "org:Organization")
+			       '("schema:Person" "foaf:Person"))))
+	      (make-type webid id-type base-id))
 	    (when (stringp name)(create-triple webid "vcard:fn" name :graph base-id :typed (getf (config :xsd) :string))
 		  (create-triple webid "foaf:name" name :graph base-id :typed (getf (config :xsd) :string)))
 	    
@@ -123,7 +126,12 @@
 	      ))))))
 
 (defun make-company (company-id company-name delegate &key image nickname key email)
-  )
+  (let ((delegate (get-webid delegate)))
+    (when (and company-id company-name delegate)
+      (let ((company (make-webid company-id :name company-name :company t :image image :nickname nickname :key key :email email)))
+	(when company
+	  (create-triple company "acl:delegates" delegate :graph (get-graph company))
+	  company)))))
   
 
 ;;Containers: https://www.w3.org/TR/2015/REC-ldp-20150226/

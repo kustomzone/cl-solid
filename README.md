@@ -6,7 +6,11 @@ A common lisp library for the Solid framework - under development...
 
 [![](https://raw.githubusercontent.com/gibsonf1/cl-solid/master/static/images/solid-webid.png)](https://github.com/gibsonf1/cl-solid)
 
-Graph visualization after make-webid command
+Gruff Graph visualization after make-webid command
+
+[![](https://raw.githubusercontent.com/gibsonf1/cl-solid/master/static/images/solid-webid-company.png)](https://github.com/gibsonf1/cl-solid)
+
+Gruff Graph visualization after make-company command
 
 ## Installation
 
