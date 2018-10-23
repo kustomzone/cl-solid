@@ -36,7 +36,7 @@
 	    (create-triple (get-lock-iri base-id) (config :p.type) (config :e.progress-code) :graph base-id)
 	    (create-triple (get-lock-iri base-id) (config :p.label) "Locked" :graph base-id)
 	    (let ((id-type (if company
-			       '("foaf:Organization" "org:Organization")
+			       '("foaf:Organization" "org:Organization" "vcard:Group")
 			       '("schema:Person" "foaf:Person"))))
 	      (make-type webid id-type base-id))
 	    (when (stringp name)(create-triple webid "vcard:fn" name :graph base-id :typed (getf (config :xsd) :string))

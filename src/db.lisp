@@ -126,22 +126,22 @@
   (get-location item "/public/"))
 
 (defun get-favicon (item)
-  (get-location item "/favicon.ico"))
+  (get-location item "/favicon"))
 
 (defun get-index (item)
-  (get-location item "/index.html"))
+  (get-location item "/index"))
 
 (defun get-robots (item)
-  (get-location item "/robots.txt"))
+  (get-location item "/robots"))
 
 (defun get-public-index (item)
-  (get-location item "/settings/publicTypeIndex.ttl"))
+  (get-location item "/settings/publicTypeIndex"))
 
 (defun get-private-index (item)
-  (get-location item "/settings/privateTypeIndex.ttl"))
+  (get-location item "/settings/privateTypeIndex"))
 
 (defun get-preferences (item)
-  (get-location item "/settings/preferences.ttl"))
+  (get-location item "/settings/preferences"))
 
 (defun get-well-known (item)
   (get-location item "/.well-known/"))
