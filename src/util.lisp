@@ -8,6 +8,8 @@
 	)
   (:import-from :cl-json-ld
 		)
+  (:import-from :osicat
+		:environment-variable)
   (:export :plist->json
 	   :json->plist
 	   :json->lisp
@@ -29,6 +31,9 @@
 	   :get-base-uri
 	   :print-hash
 	   :format-hash
+	   :production
+	   :development
+	   :list->string
 	   )
   )
 
@@ -113,6 +118,9 @@ if there were an empty string between them."
 (defmethod get-iri ((item quri.uri:uri))
   (get-iri (quri:render-uri item)))
 
+(defmethod get-iri ((item wilbur:node))
+  (get-iri (get-uri item)))
+
 (defmethod get-iri ((item t))
   nil)
 
@@ -125,6 +133,9 @@ if there were an empty string between them."
 	((?iri item)
 	 (string-trim '(#\< #\>) item))
 	))
+
+(defmethod get-uri ((item wilbur:node))
+  (wilbur:node-uri item))
 
 (defmethod get-uri ((item t))
   nil)
@@ -196,6 +207,23 @@ if there were an empty string between them."
 (defun format-hash (hash &key (destination t))
   (when (eq (type-of hash) 'hash-table)
     (maphash (lambda (k v) (format destination "~%~A: ~A" k v)) hash)))
+
+(defun development ()
+  (setf (environment-variable "APP_ENV") "development"))
+
+(defun production ()
+  (setf (environment-variable "APP_ENV") "production"))
+
+(defmethod list->string ((list cons))
+  (with-output-to-string (stream)
+    (let ((i 0))
+      (dolist (item list)
+	(incf i)
+	(format stream "~A" item)
+	(when (< i (length list))
+	  (format stream ", "))))
+    stream))
+  
 
 
 	

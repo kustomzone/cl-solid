@@ -19,6 +19,31 @@
 	   :sparql-query
 	   :sparql-values
 	   :getk
+	   :config
+	   :get-graphs
+	   :productionp
+	   :developmentp
+	   :appenv
+	   :production
+	   :development
+	   :make-webid
+	   :make-company
+	   :string+
+	   :split-string
+	   :?iri
+	   :?uri
+	   :get-iri
+	   :get-uri
+	   :get-triples->turtle
+	   :?typed-literal
+	   :get-literal-string
+	   :get-literal-type
+	   :?language-literal
+	   :get-literal-language
+	   :triples->turtle
+	   :triples->db
+	   :db->turtle
+	   :list->string
    )
   )
 

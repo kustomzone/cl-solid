@@ -42,6 +42,11 @@
 	   :get-preferences
 	   :get-well-known
 	   :get-lock-iri
+	   :?typed-literal
+	   :get-literal-string
+	   :get-literal-type
+	   :?language-literal
+	   :get-literal-language
 	   ))
 
 (in-package :cl-solid/src/db)
@@ -302,7 +307,7 @@
 (defun delete-triple (subject predicate object &key graph typed)
   (modify-triple subject predicate object :graph graph :typed typed :action "DELETE"))
 
-(defun modify-triple (subject predicate object &key graph typed action) 
+(defun modify-triple (subject predicate object &key graph typed action);TODO Update to allow caching of multiple triples to write and then committing them all in a batch to the server
   (let ((subject (grow subject))
 	(predicate (grow predicate))
 	(object (if typed
@@ -325,6 +330,46 @@
 
 (defmethod get-typed-literal ((item string)(type symbol))
   (get-typed-literal item (getf (config :xsd) type )))
+
+(defmethod ?typed-literal ((item string))
+  ;;TODO improve to include only xsd types
+  (let ((parse (split-string #\^ item)))
+    (when (and (= (length parse) 3)
+	       (?iri (third parse)))
+      t)))
+
+(defmethod ?typed-literal ((item t))
+  nil)
+
+(defmethod get-literal-type ((item string))
+  (when (?typed-literal item)
+    (let ((parse (split-string #\^ item)))
+      (third parse))))
+
+(defmethod get-literal-type ((item t))
+  nil)
+
+(defmethod ?language-literal ((item string))
+  (let ((parse (split-string #\@ item)))
+    (when (and (= (length parse) 2)
+	       (= (length (second parse)) 2))
+      t)))
+
+(defmethod ?language-literal ((item t))
+  nil)
+
+(defmethod get-literal-language ((item string))
+  (when (?language-literal item)
+    (let ((parse (split-string #\@ item)))
+      (second parse))))
+
+(defmethod get-literal-string ((item string))
+  (let ((parse (cond ((?typed-literal item)
+		      (split-string #\^ item))
+		     ((?language-literal item)
+		      (split-string #\@ item))
+		     (t (list item)))))
+    (string-trim "\"" (car parse))))
 
 (defmethod ?compact ((item string))
   (let ((parse (split-string #\: item)))

@@ -26,6 +26,7 @@
 	   (base-web-id (string+ (first parse-namespace) "//" userid "." (third parse-namespace)))
 	   (webid (get-webid base-web-id :company company))
 	   (base-id (get-iri base-web-id))
+	   (userid (string-downcase userid))
 	   )
       (if (sparql-values (string+ "select ?o where {" base-id " ?p ?o .}"))
 	  (format t "~%ERROR: This webid already exists - try again with another userid")
