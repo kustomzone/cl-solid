@@ -14,6 +14,7 @@
                "envy"
                "cl-ppcre"
                "uiop"
+	       "wilbur"
 
                ;; for @route annotation
                "cl-syntax-annot"
