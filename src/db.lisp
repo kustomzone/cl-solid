@@ -23,6 +23,7 @@
 	   :server-script
 	   :?allegrograph
 	   :update-server-scripts
+	   :get-pod-graph
 	   :get-repo-name
 	   :get-ontologies
 	   :get-graphs
@@ -101,6 +102,9 @@
   `(,(config :user) . ,(config :password)))
 
 ;;Solid standard items
+
+(defun get-pod-graph (item)
+  (get-location item ""))
 
 ;;need to make "us" for company - TODO need company check for already created ids
 (defun get-webid (item &key company)

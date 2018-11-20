@@ -6,6 +6,11 @@
 	)
   (:import-from :cl-solid/src/config
                 :config)
+  (:import-from :wilbur
+		:triple
+		:node
+		:literal
+		:db-add-triple)
   (:export :get-triples->turtle
 	   :triples->turtle
 	   :triples->db

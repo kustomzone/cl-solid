@@ -18,6 +18,9 @@
            :stop
 	   :sparql-query
 	   :sparql-values
+	   :get-pod-graph
+	   :get-root
+	   :get-well-known
 	   :getk
 	   :config
 	   :get-graphs
@@ -44,6 +47,11 @@
 	   :triples->db
 	   :db->turtle
 	   :list->string
+	   :plist->json
+	   :json->plist
+	   :json-string->plist
+	   :json-string->list
+	   :json->lisp
    )
   )
 

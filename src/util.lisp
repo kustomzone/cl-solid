@@ -5,6 +5,7 @@
 	:alexandria
 	:babel
 	:quri
+	:wilbur
 	)
   (:import-from :cl-json-ld
 		)
@@ -101,10 +102,11 @@ if there were an empty string between them."
   nil)
 
 (defmethod ?iri ((item string))
-  (when (and (string= (subseq item 0 1) "<")
-	     (string= (subseq item (- (length item) 1) (length item)) ">")
-	     (?uri (subseq item 1 (- (length item) 1))))
-      t))
+  (when (> (length item) 2)
+    (when (and (string= (subseq item 0 1) "<")
+	       (string= (subseq item (- (length item) 1) (length item)) ">")
+	       (?uri (subseq item 1 (- (length item) 1))))
+      t)))
 
 (defmethod ?iri ((item t))
   nil)
