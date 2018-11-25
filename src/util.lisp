@@ -6,6 +6,7 @@
 	:babel
 	:quri
 	:wilbur
+	:cl-graph
 	)
   (:import-from :cl-json-ld
 		)

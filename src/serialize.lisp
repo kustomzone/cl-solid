@@ -34,20 +34,21 @@
   (let ((db (if db
 		db
 		(make-instance 'wilbur:db))))
+    (setf wilbur:*db* db)
     (dolist (triple triples)
       (format nil "~%~s" triple)
-      (let ((trip (wilbur:triple
-		   (wilbur:node (get-uri (first triple)))
-		   (wilbur:node (get-uri (second triple)))
+      (let ((trip (triple
+		   (node (get-uri (first triple)))
+		   (node (get-uri (second triple)))
 		   (let ((object (third triple)))
 		     (cond ((?iri object)
-			    (wilbur:node (get-uri object)))
+			    (node (get-uri object)))
 			   ((?typed-literal object)
-			    (wilbur:literal (get-literal-string object) :datatype (wilbur:node (get-uri (get-literal-type object)))))
+			    (literal (get-literal-string object) :datatype (node (get-uri (get-literal-type object)))))
 			   ((?language-literal object)
-			    (wilbur:literal (get-literal-string object) :language (get-literal-language object)))
-			   (t (wilbur:literal object)))))))
-	(wilbur:db-add-triple db trip)))
+			    (literal (get-literal-string object) :language (get-literal-language object)))
+			   (t (literal object)))))))
+	(db-add-triple db trip)))
     db))
 
 (defun triples->turtle (triples &key (stream t) db)
