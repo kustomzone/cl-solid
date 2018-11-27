@@ -37,6 +37,7 @@
 	   :?uri
 	   :get-iri
 	   :get-uri
+	   :get-repository
 	   :get-triples->turtle
 	   :?typed-literal
 	   :get-literal-string

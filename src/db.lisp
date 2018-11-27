@@ -41,6 +41,7 @@
 	   :get-public-index
 	   :get-private-index
 	   :get-preferences
+	   :get-repository
 	   :get-well-known
 	   :get-lock-iri
 	   :?typed-literal
@@ -61,6 +62,36 @@
 (defmacro with-connection (conn &body body)
   `(let ((*connection* ,conn))
      ,@body))
+
+(defun sparql-query (query &key (output :json))
+  "this will take any query as a string and send to server"
+  (let* ((repository (get-repository))
+	 (output (cond ((keywordp output)
+			(getf (config :sparql-output) output))
+		       ((stringp output)
+			output)))
+	 )
+  (handler-case
+      (multiple-value-bind (result http-status response-hash uri stream)
+	  (dex:post repository
+		    :basic-auth (get-auth)
+		    :headers (list '("content-type"."application/sparql-query")
+				   '("charset"."utf-8")
+				   `("accept". ,output)
+				   )
+		    :content query
+		    )
+	(declare (ignore http-status response-hash uri))
+	(close stream)
+	result)
+	
+    (error (err) (process-error err)))))
+
+(defun sparql-values (query)
+  (let ((result (sparql-query query :output :json)))
+    (if (stringp result)
+	(cdr (assoc :values
+		       (json-string->list result))))))
 
 #|
 (defun get-agent-iri (graph)
@@ -439,35 +470,7 @@
 		:content query)))
   
 
-(defun sparql-query (query &key (output :json))
-  "this will take any query as a string and send to server"
-  (let* ((repository (get-repository))
-	 (output (cond ((keywordp output)
-			(getf (config :sparql-output) output))
-		       ((stringp output)
-			output)))
-	 )
-  (handler-case
-      (multiple-value-bind (result http-status response-hash uri stream)
-	  (dex:post repository
-		    :basic-auth (get-auth)
-		    :headers (list '("content-type"."application/sparql-query")
-				   '("charset"."utf-8")
-				   `("accept". ,output)
-				   )
-		    :content query
-		    )
-	(declare (ignore http-status response-hash uri))
-	(close stream)
-	result)
-	
-    (error (err) (process-error err)))))
 
-(defun sparql-values (query)
-  (let ((result (sparql-query query :output :json)))
-    (if (stringp result)
-	(cdr (assoc :values
-		       (json-string->list result))))))
 
 ;;Need to serialize turtle - use of Allegrograph sessions and server scripting here
 
