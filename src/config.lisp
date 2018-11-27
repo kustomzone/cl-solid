@@ -58,6 +58,7 @@
 				 :org "<http://www.w3.org/ns/org#>"
 				 :owl "<http://www.w3.org/2002/07/owl#>"
 				 :st "<http://www.w3.org/ns/posix/stat#>"
+				 :gmx "<http://graphmetrix.com/node#>"
 				 )
 		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
 				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
@@ -75,6 +76,7 @@
 				       :org "https://lov.linkeddata.es/dataset/lov/vocabs/org/versions/2014-04-12.n3"
 				       :owl "https://lov.linkeddata.es/dataset/lov/vocabs/owl/versions/2009-11-15.n3"
 				       :st "https://raw.githubusercontent.com/solid/vocab/master/posix-stat.rdf"
+				       :gmx "" ;;TODO add gmx via load file
 				       )
 		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
 				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -92,6 +94,7 @@
 				     :org "http://www.w3.org/ns/org#"
 				     :owl "http://www.w3.org/2002/07/owl"
 				     :st "http://www.w3.org/ns/posix/stat"
+				     :gmx "http://graphmetrix.com/node#7"
 				     )
 				    
 				      
