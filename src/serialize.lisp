@@ -10,14 +10,38 @@
 		:triple
 		:node
 		:literal
-		:db-add-triple)
+		:db-add-triple
+		:db-triples
+		:triple-subject
+		:triple-predicate
+		:triple-object
+		)
   (:export :get-triples->turtle
 	   :triples->turtle
 	   :triples->db
 	   :db->turtle
+	   :db->agraph
 	   ))
 
 (in-package :cl-solid/src/serialize)
+
+(defmethod db->agraph ((db* db)(graph string))
+  "This takes a Wilbur db and saves it to the current Allegrograph repository"
+  (let* ((triples (db-triples db*))
+	 (dump)) ; (db->turtle db*)))
+    (dolist (triple triples)
+      (setf dump (string+ dump
+			  (term->string (triple-subject triple)) " "
+			  (term->string (triple-predicate triple)) " "
+			  (term->string (triple-object triple))
+			  (format nil " .~%"))))
+					;dump))
+    (let* ((query (string+ "INSERT DATA { GRAPH " (get-iri graph) " { "
+			   (format nil "~%")
+			   dump
+			   " } }"))
+	   (result (sparql-query query)))
+      result)))
 
 (defun get-triples->turtle (&key s p o g repo)
   "This uses the Allegrograph get-triples function https://franz.com/agraph/support/documentation/current/lisp-reference.html#function.get-triples"

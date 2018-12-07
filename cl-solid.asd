@@ -15,6 +15,10 @@
                "cl-ppcre"
                "uiop"
 	       "wilbur"
+	       "cl-ppcre"
+	       "parse-float"
+	       "simple-date-time"
+	       "cl-date-time-parser"
 
                ;; for @route annotation
                "cl-syntax-annot"

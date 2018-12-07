@@ -7,7 +7,13 @@
 	:quri
 	:wilbur
 	:cl-graph
+	:cl-ppcre
+	:parse-float
+	:simple-date-time
+	:cl-date-time-parser
 	)
+  (:import-from :xmls
+		:parse-to-list)
   (:import-from :cl-json-ld
 		)
   (:import-from :osicat
@@ -36,6 +42,11 @@
 	   :production
 	   :development
 	   :list->string
+	   :program-stream
+	   :string->literal
+	   :literal->string
+	   :term->string
+	   :replace-all
 	   )
   )
 
@@ -140,6 +151,9 @@ if there were an empty string between them."
 (defmethod get-uri ((item wilbur:node))
   (wilbur:node-uri item))
 
+(defmethod get-uri ((item cons))
+  (mapcar #'get-uri item))
+
 (defmethod get-uri ((item t))
   nil)
 
@@ -226,6 +240,192 @@ if there were an empty string between them."
 	(when (< i (length list))
 	  (format stream ", "))))
     stream))
+
+(defun program-stream (program &optional args)
+  (let ((process (uiop:run-program program
+                                     :input :stream
+                                     :output :stream
+                                     :wait nil
+                                     :search t)))
+    (when process
+      (make-two-way-stream (sb-ext:process-output process)
+                           (sb-ext:process-input process)))))
+
+(defmethod string->literal ((item null))
+  )
+
+(defmethod string->literal ((item t))
+  )
+
+(defmethod string->literal ((item string))
+  "Converts a string to a typed Wilbur literal"
+  ;;check if number related
+  (cond ((and (?xsd-datatyped item)(?xsd-language item))
+	 (multiple-value-bind (start xsd)
+	     (parse-xsd-datatype item)
+	   (multiple-value-bind (lit lang)
+	       (parse-xsd-language start)
+	     (literal lit :datatype xsd :language lang))))
+	((?xsd-datatyped item)
+	 (multiple-value-bind (lit xsd)
+	     (parse-xsd-datatype item)
+	   (literal lit :datatype xsd)))
+	((?xsd-language item)
+	 (multiple-value-bind (lit lang)
+	     (parse-xsd-language item)
+	   (literal lit :datatype !xsd:string :language lang)))
+	((?xsd-integer item)
+	 (literal item :datatype !xsd:integer))
+	((?xsd-float item)
+	 (literal item :datatype !xsd:float))
+	((?xsd-boolean item)
+	 (literal item :datatype !xsd:boolean))
+	((?xsd-normalized-string item)
+	 (literal item :datatype !xsd:normalizedString))
+	((?xsd-date item)
+	 (let* ((ut (parse-date-time item))
+		(date (iso8601-date-string ut t)))
+	   (literal date :datatype !xsd:date)))
+	((?xsd-date-time item)
+	 (let* ((ut (parse-date-time item))
+		(date (iso8601-date-string ut)))
+	   (literal date :datatype !xsd:dateTime)))
+	(t
+	 (literal item :datatype !xsd:string))
+	)
+  )
+
+
+(defmethod parse-xsd-datatype ((item string))
+  (let ((split (split "\\^{2}" item)))
+    (when (= (length split) 2)
+      (when (or (search (node-uri !xsd:) item)
+		(scan "<xsd:[^>]" item))
+	(values (first split)(second split))))))
+
+(defmethod parse-xsd-language ((item string))
+  (let ((split (split "@" item)))
+    (when (= (length split) 2)
+      (when (= (length (second split)) 2);;TODO compare against valid languages
+	(values (first split)(second split))))))
+
+(defmethod ?xsd-language ((item string))
+  (when (parse-xsd-language item)
+    t))
+
+(defmethod ?xsd-datatyped ((item string))
+  (when (parse-xsd-datatype item)
+t))
+
+(defmethod ?xsd-integer ((item string))
+  (let ((integer (parse-integer item :junk-allowed t)))
+    (and integer (string= (write-to-string integer) item))))
+
+(defmethod ?xsd-float ((item string))
+  (let ((float (parse-float item :junk-allowed t)))
+    (and float (string= (write-to-string float) item))))
+
+(defmethod ?xsd-date ((item string))
+  (?xsd-date (ignore-errors (parse-date-time item))))
+
+(defmethod ?xsd-date ((item integer))
+  (when (eq (length (write-to-string item)) 10)
+    (multiple-value-bind (sec min hour day month year weekday dst-p time-zone)
+	(decode-universal-time item 0)
+      (declare (ignore day month weekday dst-p time-zone))
+      (when year
+	(when (and (= sec 0)(= min 0)(= hour 0))
+	  t)))))
+
+(defmethod ?xsd-date ((item null))
+  )
+
+(defmethod ?xsd-date ((item t))
+  )
+
+(defmethod ?xsd-date-time ((item string)) ;;TODO prescreen string to rule out obvious non-dates
+  (?xsd-date-time (ignore-errors (parse-date-time item))))
+
+(defmethod ?xsd-date-time ((item integer))
+  ;;TODO - fix this so that midnight datetimes don't fail
+  (when (eq (length (write-to-string item)) 10)
+    (multiple-value-bind (sec min hour day month year weekday dst-p time-zone)
+	(decode-universal-time item 0)
+      (declare (ignore day month weekday dst-p time-zone))
+      (when year
+	(unless (and (= sec 0)(= min 0)(= hour 0))
+	  t)))))
+
+(defmethod ?xsd-date-time ((item null))
+  )
+
+(defmethod ?xsd-date-time ((item t))
+  )
+
+(defmethod ?xsd-normalized-string ((item string))
+  (let ((chars (concatenate 'list item)))
+    (when (not
+	   (or
+	    (member #\return chars)
+	    (member #\tab chars)
+	    (member #\newline chars)
+	    (member #\& chars)
+	    (member #\< chars)
+	    (member #\" chars)
+	    (member #\' chars)
+	    (member #\\ chars)
+	    ))
+      t)))
+
+(defmethod ?xsd-boolean ((item string))
+  (or (string= (string-downcase item) "true")
+      (string= (string-downcase item) "false")
+      ))
+
+(defmethod literal->string ((literal literal))
+  (let ((literal (literal-string literal))
+	(language (literal-language literal))
+	(datatype (node-uri (literal-datatype literal)))) 
+    (when literal
+      ;;unicode quotes
+      (setf literal (string literal))
+      (setf literal (replace-all literal "\"" "&quot;"))
+      (setf literal (replace-all literal "'" "&apos;"))
+      (setf literal (replace-all literal "\\" "&#92;"))
+	(when (or language datatype)
+	  (setf literal
+		(if (string= (node-uri !xsd:string) datatype)
+		    (format nil "'''~A'''" literal)
+		    (format nil "\"~A\"" literal))))
+	(when language
+	  (setf literal (string+ literal (format nil "@~A" language))))
+	(when datatype
+	  (setf literal (string+ literal (format nil "^^~a" (get-iri datatype)))))
+	literal)))
+
+(defmethod term->string ((term literal))
+  (literal->string term))
+
+(defmethod term->string ((term node))
+  (get-iri (node-uri term)))
+
+(defun replace-all (string part replacement &key (test #'char=))
+"Returns a new string in which all the occurences of the part 
+is replaced with replacement."
+    (with-output-to-string (out)
+      (loop with part-length = (length part)
+            for old-pos = 0 then (+ pos part-length)
+            for pos = (search part string
+                              :start2 old-pos
+                              :test test)
+            do (write-string string out
+                             :start old-pos
+                             :end (or pos (length string)))
+            when pos do (write-string replacement out)
+            while pos))) 
+    
+    
+	
   
 
 

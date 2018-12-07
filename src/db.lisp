@@ -3,6 +3,18 @@
   (:use :cl
 	:cl-solid/src/util
 	)
+ 
+  (:import-from :wilbur
+		:triple
+		:node
+		:literal
+		:db-add-triple
+		:db-triples
+		:triple-subject
+		:triple-predicate
+		:triple-object
+		:db
+		)
   (:import-from :cl-solid/src/config
                 :config
 		:productionp
@@ -10,12 +22,14 @@
   (:import-from :dexador)
   (:export :connection-settings
            :db
+	   :db->agraph
            :with-connection
 	   :sparql-query
 	   :sparql-values
 	   :create-triple
 	   :delete-triple
 	   :create-new-id
+	   :create-new-ids
 	   :get-typed-literal
 	   :grow
 	   :get-object
@@ -91,7 +105,11 @@
   (let ((result (sparql-query query :output :json)))
     (if (stringp result)
 	(cdr (assoc :values
-		       (json-string->list result))))))
+		    (json-string->list result))))))
+
+
+  
+
 
 #|
 (defun get-agent-iri (graph)

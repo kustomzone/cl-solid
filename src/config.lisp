@@ -61,6 +61,9 @@
 				 :gmx "<http://graphmetrix.com/node#>"
 				 :dul "<http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>"
 				 :sio "<http://semanticscience.org/resource/>"
+				 :ctag "<http://commontag.org/ns#>"
+				 :tet "<http://www.pdflib.com/XML/TET5/TET-5.0/>"
+				 :prov "<http://www.w3.org/ns/prov#>"
 				 )
 		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
 				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
@@ -81,6 +84,9 @@
 				       :gmx "" ;;TODO add gmx via load file
 				       :dul "https://lov.linkeddata.es/dataset/lov/vocabs/dul/versions/2017-04-10.n3"
 				       :sio "https://lov.linkeddata.es/dataset/lov/vocabs/sio/versions/2016-09-27.n3"
+				       :ctag "https://lov.linkeddata.es/dataset/lov/vocabs/ctag/versions/2009-06-08.n3"
+				       :tet "" ;;TODO
+				       :prov "https://lov.linkeddata.es/dataset/lov/vocabs/prov/versions/2015-01-11.n3"
 				       )
 		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
 				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -101,6 +107,9 @@
 				     :gmx "http://graphmetrix.com/node#7"
 				     :dul "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl"
 				     :sio "http://semanticscience.org/ontology/sio.owl"
+				     :ctag "http://commontag.org/ns#"
+				     :tet "http://www.pdflib.com/XML/TET5/TET-5.0"
+				     :prov "http://www.w3.org/ns/prov#"
 				     )
 				    
 				      

@@ -31,6 +31,9 @@
 	   :development
 	   :make-webid
 	   :make-company
+	   :create-new-id
+	   :create-new-ids
+	   :create-triple
 	   :string+
 	   :split-string
 	   :?iri
@@ -41,6 +44,9 @@
 	   :get-triples->turtle
 	   :?typed-literal
 	   :get-literal-string
+	   :string->literal
+	   :literal->string
+	   :term->string
 	   :get-literal-type
 	   :?language-literal
 	   :get-literal-language
@@ -53,6 +59,10 @@
 	   :json-string->plist
 	   :json-string->list
 	   :json->lisp
+	   :program-stream
+	   :process-error
+	   :db->agraph
+	   :replace-all
    )
   )
 
