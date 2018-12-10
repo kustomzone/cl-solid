@@ -318,15 +318,19 @@ if there were an empty string between them."
 t))
 
 (defmethod ?xsd-integer ((item string))
-  (let ((integer (parse-integer item :junk-allowed t)))
-    (and integer (string= (write-to-string integer) item))))
+  (when (ppcre:scan "^[0-9]*$" item)
+    (let ((integer (parse-integer item :junk-allowed t)))
+      (and integer (string= (write-to-string integer) item)))))
 
 (defmethod ?xsd-float ((item string))
-  (let ((float (parse-float item :junk-allowed t)))
-    (and float (string= (write-to-string float) item))))
+  (when (ppcre:scan "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$" item)
+    (let ((float (parse-float item :junk-allowed t)))
+      (and float (string= (write-to-string float) item)))))
 
 (defmethod ?xsd-date ((item string))
-  (?xsd-date (ignore-errors (parse-date-time item))))
+  (when (and (< (length item) 40)
+	     (ppcre:scan "[02][0-9]{3}" item)) ;min 4 number year
+    (?xsd-date (ignore-errors (parse-date-time item)))))
 
 (defmethod ?xsd-date ((item integer))
   (when (eq (length (write-to-string item)) 10)
@@ -344,11 +348,14 @@ t))
   )
 
 (defmethod ?xsd-date-time ((item string)) ;;TODO prescreen string to rule out obvious non-dates
-  (?xsd-date-time (ignore-errors (parse-date-time item))))
+  (when (and (< (length item) 40)
+	     (ppcre:scan "[02][0-9]{3}" item)) ;min 4 number year
+    (?xsd-date-time (ignore-errors (parse-date-time item)))))
 
 (defmethod ?xsd-date-time ((item integer))
   ;;TODO - fix this so that midnight datetimes don't fail
-  (when (eq (length (write-to-string item)) 10)
+  (when (eq (and (length (write-to-string item)) 10)
+	    (ppcre:scan "[02][0-9]{3}" item)) ;;muust at least have 4 number year
     (multiple-value-bind (sec min hour day month year weekday dst-p time-zone)
 	(decode-universal-time item 0)
       (declare (ignore day month weekday dst-p time-zone))
