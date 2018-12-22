@@ -19,7 +19,7 @@
 	       "parse-float"
 	       "simple-date-time"
 	       "cl-date-time-parser"
-
+	       "xmls"
                ;; for @route annotation
                "cl-syntax-annot"
 
