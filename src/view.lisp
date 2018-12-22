@@ -34,6 +34,16 @@
   (setf (getf (response-headers *response*) :content-type) "application/json")
   (encode-json object))
 
+(defun render-turtle (object)
+  (setf (getf (response-headers *response*) :content-type) "text/turtle")
+  (handler-case
+      (format nil "~A" object)
+    (error (err) (process-error err))))
+  
+
+(defun render-text (object)
+  (setf (getf (response-headers *response*) :content-type) "text/plain")
+  (jojo:with-output-to-string* object))
 
 ;;
 ;; Execute package definition

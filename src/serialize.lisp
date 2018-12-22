@@ -21,12 +21,33 @@
 	   :triples->db
 	   :db->turtle
 	   :db->agraph
+	   :db->agraph-delete
+	   :triples->agraph
+	   :triples->agraph-delete
 	   ))
 
 (in-package :cl-solid/src/serialize)
 
+
+(defmethod triples->agraph ((triples cons)(graph string))
+  (db->agraph-modify (w-triples->db triples) graph "INSERT"))
+
+(defmethod triples->agraph-delete ((triples cons)(graph string))
+  (db->agraph-modify (w-triples->db triples) graph "DELETE"))
+
 (defmethod db->agraph ((db* db)(graph string))
   "This takes a Wilbur db and saves it to the current Allegrograph repository"
+  ;;TODO - speed up with a bulk-upload all triples via file
+  (db->agraph-modify db* graph "INSERT"))
+
+(defmethod db->agraph-delete ((db* db)(graph string))
+  "This takes a Wilbur db and saves it to the current Allegrograph repository"
+  ;;TODO - speed up with a bulk-upload all triples via file
+  (db->agraph-modify db* graph "DELETE"))
+
+(defmethod db->agraph-modify ((db* db)(graph string)(verb string))
+  "This takes a Wilbur db and modifies it within the current Allegrograph repository"
+  ;;TODO - speed up with a bulk-upload all triples via file
   (let* ((triples (db-triples db*))
 	 (dump)) ; (db->turtle db*)))
     (dolist (triple triples)
@@ -36,7 +57,7 @@
 			  (term->string (triple-object triple))
 			  (format nil " .~%"))))
 					;dump))
-    (let* ((query (string+ "INSERT DATA { GRAPH " (get-iri graph) " { "
+    (let* ((query (string+ verb " DATA { GRAPH " (get-iri graph) " { "
 			   (format nil "~%")
 			   dump
 			   " } }"))
@@ -52,6 +73,16 @@
 	  (g (if g g ""))
 	  (repo (if repo repo "")))
       (server-script "get-triples-to-turtle" (list `("repo" . ,repo)`("s" . ,s)`("p" . ,p)`("o" . ,o)`("g" . ,g))))))
+
+(defun w-triples->db (triples &key db)
+  "Uses Wilbur in memory rdf system and serializes wilbur triples to db"
+  (let ((db (if db
+		db
+		(make-instance 'wilbur:db))))
+    (setf wilbur:*db* db)
+    (dolist (triple triples)
+      (db-add-triple db triple))
+    db))
 
 (defun triples->db (triples &key db)
   "Uses Wilbur in memory rdf system and serializes to turtle"

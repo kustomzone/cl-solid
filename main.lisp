@@ -52,6 +52,8 @@
 	   :get-literal-language
 	   :triples->turtle
 	   :triples->db
+	   :triples->agraph
+	   :triples->agraph-delete
 	   :db->turtle
 	   :list->string
 	   :plist->json

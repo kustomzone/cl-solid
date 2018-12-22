@@ -273,15 +273,15 @@ if there were an empty string between them."
 	((?xsd-language item)
 	 (multiple-value-bind (lit lang)
 	     (parse-xsd-language item)
-	   (literal lit :datatype !xsd:string :language lang)))
+	   (literal lit :language lang)))
 	((?xsd-integer item)
 	 (literal item :datatype !xsd:integer))
 	((?xsd-float item)
 	 (literal item :datatype !xsd:float))
 	((?xsd-boolean item)
 	 (literal item :datatype !xsd:boolean))
-	((?xsd-normalized-string item)
-	 (literal item :datatype !xsd:normalizedString))
+					;((?xsd-normalized-string item)
+					; (literal item :datatype (node-uri !xsd:normalizedString)))
 	((?xsd-date item)
 	 (let* ((ut (parse-date-time item))
 		(date (iso8601-date-string ut t)))
@@ -301,13 +301,19 @@ if there were an empty string between them."
     (when (= (length split) 2)
       (when (or (search (node-uri !xsd:) item)
 		(scan "<xsd:[^>]" item))
-	(values (first split)(second split))))))
+	(values (first split)(node (get-uri (second split))))))))
 
 (defmethod parse-xsd-language ((item string))
   (let ((split (split "@" item)))
     (when (= (length split) 2)
       (when (= (length (second split)) 2);;TODO compare against valid languages
-	(values (first split)(second split))))))
+	(let* ((string (first split))
+	       (string (cond ((eq (search "'''" string) 0)
+			      (string-left-trim "'''" (string-right-trim "'''" string)))
+			     ((eq (search "\"" string) 0)
+			      (string-left-trim "\"" (string-right-trim "\"" string)))
+			     (t string))))
+	  (values string (second split)))))))
 
 (defmethod ?xsd-language ((item string))
   (when (parse-xsd-language item)
@@ -369,6 +375,7 @@ t))
 (defmethod ?xsd-date-time ((item t))
   )
 
+#|
 (defmethod ?xsd-normalized-string ((item string))
   (let ((chars (concatenate 'list item)))
     (when (not
@@ -383,6 +390,7 @@ t))
 	    (member #\\ chars)
 	    ))
       t)))
+|#
 
 (defmethod ?xsd-boolean ((item string))
   (or (string= (string-downcase item) "true")
@@ -390,25 +398,38 @@ t))
       ))
 
 (defmethod literal->string ((literal literal))
-  (let ((literal (literal-string literal))
-	(language (literal-language literal))
-	(datatype (node-uri (literal-datatype literal)))) 
-    (when literal
+  (let* ((lit (literal-string literal))
+	 (language (literal-language literal))
+	 (datatype (literal-datatype literal))
+	 (datatype (when datatype
+		     (node-uri datatype))))
+    ;(print (list lit language datatype))
+    (when lit
+      (setf literal lit)
       ;;unicode quotes
+      #|
+      (unless (or language datatype)
+	(setf literal (string-left-trim "\"" (string-right-trim "\"" literal))))
+      
       (setf literal (string literal))
       (setf literal (replace-all literal "\"" "&quot;"))
       (setf literal (replace-all literal "'" "&apos;"))
       (setf literal (replace-all literal "\\" "&#92;"))
-	(when (or language datatype)
-	  (setf literal
-		(if (string= (node-uri !xsd:string) datatype)
-		    (format nil "'''~A'''" literal)
-		    (format nil "\"~A\"" literal))))
-	(when language
-	  (setf literal (string+ literal (format nil "@~A" language))))
-	(when datatype
-	  (setf literal (string+ literal (format nil "^^~a" (get-iri datatype)))))
-	literal)))
+      |#
+      (when (or language datatype)
+	(setf literal
+	      (if (or
+		   (search "\"" literal)
+		   (search "'" literal))
+		  (format nil "'''~A'''" literal)
+		  (format nil "\"~A\"" literal))))
+      (when language
+	(setf literal (string+ literal (format nil "@~A" language))))
+      (when (and datatype (not language))
+	(setf literal (string+ literal (format nil "^^~a" (get-iri datatype)))))
+					;(unless (or language datatype)
+					;(setf literal (format nil "\"~A\"" literal)))
+      literal)))
 
 (defmethod term->string ((term literal))
   (literal->string term))
