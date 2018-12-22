@@ -12,8 +12,8 @@
 	:simple-date-time
 	:cl-date-time-parser
 	)
-  (:import-from :xmls
-		:parse-to-list)
+  ;(:import-from :xmls
+  ;:parse-to-list)
   (:import-from :cl-json-ld
 		)
   (:import-from :osicat
