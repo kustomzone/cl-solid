@@ -94,6 +94,8 @@
 				 :cc "<http://creativecommons.org/ns#>"
 				 :temporal "<http://franz.com/ns/allegrograph/3.0/temporal/>"
 				 :xsd "<http://www.w3.org/2001/XMLSchema#>"
+				 :obo "<http://purl.obolibrary.org/obo/>"
+				 ;:lgdo "<http://linkedgeodata.org/ontology/>"
 				 )
 		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
 				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
@@ -146,6 +148,8 @@
 				       :cc "https://lov.linkeddata.es/dataset/lov/vocabs/cc/versions/2008-03-03.n3"
 				       :temporal ""
 				       :xsd ""
+				       :obo "https://lov.linkeddata.es/dataset/lov/vocabs/obo/versions/2015-04-13.n3"
+				       ;:lgdo "https://lov.linkeddata.es/dataset/lov/vocabs/lgdo/versions/2014-07-26.n3"
 				       )
 		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
 				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -199,6 +203,8 @@
 				     :cc "http://creativecommons.org/ns"
 				     :temporal "http://franz.com/ns/allegrograph/3.0/temporal/"
 				     :xsd "http://www.w3.org/2001/XMLSchema"
+				     :obo "http://purl.obolibrary.org/obo/obi.owl"
+				     ;:lgdo "http://linkedgeodata.org/ontology"
 				     )
 				    
 				      

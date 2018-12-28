@@ -65,6 +65,10 @@
 	   :process-error
 	   :db->agraph
 	   :replace-all
+	   :render
+	   :render-json
+	   :render-turtle
+	   :render-text
    )
   )
 

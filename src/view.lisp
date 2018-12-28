@@ -14,7 +14,10 @@
   (:import-from :datafly
                 :encode-json)
   (:export :render
-           :render-json))
+           :render-json
+	   :render-turtle
+	   :render-text
+	   ))
 (in-package :cl-solid/src/view)
 
 (djula:add-template-directory *template-directory*)
