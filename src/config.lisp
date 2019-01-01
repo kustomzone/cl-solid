@@ -98,6 +98,8 @@
 					;:lgdo "<http://linkedgeodata.org/ontology/>"
 				 :link "<https://www.w3.org/2007/ont/link#>"
 				 :cogs "<http://vocab.deri.ie/cogs#>"
+				 :ocds "<http://purl.org/onto-ocds/ocds#>"
+				 :pay "<http://reference.data.gov.uk/def/payment#>"
 				 )
 		 :ontology-ttl (:acl "http://www.w3.org/ns/auth/acl"
 				       :rdf "https://lov.linkeddata.es/dataset/lov/vocabs/rdf/versions/2014-02-25.n3"
@@ -154,6 +156,8 @@
 					;:lgdo "https://lov.linkeddata.es/dataset/lov/vocabs/lgdo/versions/2014-07-26.n3"
 				       :link ""
 				       :cogs "https://lov.linkeddata.es/dataset/lov/vocabs/cogs/versions/2014-03-10.n3"
+				       :ocds "https://lov.linkeddata.es/dataset/lov/vocabs/ocds/versions/2018-07-03.n3"
+				       :pay "https://lov.linkeddata.es/dataset/lov/vocabs/pay/versions/2010-11-16.n3"
 				       )
 		 :ontology-uri (:acl "http://www.w3.org/ns/auth/acl"
 				     :rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -211,6 +215,8 @@
 					;:lgdo "http://linkedgeodata.org/ontology"
 				     :link "https://www.w3.org/2007/ont/link"
 				     :cogs "http://vocab.deri.ie/cogs"
+				     :ocds "http://purl.org/onto-ocds/ocds"
+				     :pay "http://reference.data.gov.uk/def/payment#"
 				     )
 				    
 				      
